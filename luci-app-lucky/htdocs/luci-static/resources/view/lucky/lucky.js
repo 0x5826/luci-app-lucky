@@ -180,7 +180,7 @@ return view.extend({
                     type: 'button', class: 'btn cbi-button cbi-button-apply', value: _('Start'),
                     click: function(ev) {
                         ev.target.disabled = true;
-                        callService('start').then(function() { setTimeout(updatePageData, 1000); });
+                        callService('start').then(function() { setTimeout(updatePageData, 2000); });
                     }
                 });
 
@@ -188,7 +188,7 @@ return view.extend({
                     type: 'button', class: 'btn cbi-button cbi-button-reset', value: _('Stop'),
                     click: function(ev) {
                         ev.target.disabled = true;
-                        callService('stop').then(function() { setTimeout(updatePageData, 1000); });
+                        callService('stop').then(function() { setTimeout(updatePageData, 2000); });
                     }
                 });
 
@@ -196,7 +196,7 @@ return view.extend({
                     type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Restart'),
                     click: function(ev) {
                         ev.target.disabled = true;
-                        callService('restart').then(function() { setTimeout(updatePageData, 1000); });
+                        callService('restart').then(function() { setTimeout(updatePageData, 2000); });
                     }
                 });
 
@@ -238,7 +238,7 @@ return view.extend({
                                 isUpdating = false;
                                 ui.hideModal();
                                 updatePageData();
-                            }, 3000);
+                            }, 2000);
                         });
                     } else {
                         isUpdating = false;
