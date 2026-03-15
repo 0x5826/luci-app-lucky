@@ -48,7 +48,7 @@ function set_cache(data) {
     if (fd) fd.close();
     if (pid && data) {
         let cache = { pid: pid, data: data };
-        writefile(CACHE_FILE, json(cache));
+        writefile(CACHE_FILE, sprintf("%J", cache));
     }
 }
 
@@ -78,6 +78,12 @@ const methods = {
     },
     get_info: {
         call: function() {
+            // 先尝试从缓存读取
+            let cached = get_cache();
+            if (cached) {
+                return cached;
+            }
+
             let e = {};
             let configPath = get_configdir();
 
@@ -108,6 +114,8 @@ const methods = {
                 }
             }
 
+            // 写入缓存
+            set_cache(e);
             return e;
         }
     },
