@@ -18,22 +18,37 @@ function get_configdir() {
 const methods = {
     get_status: {
         call: function() {
-            let fd = popen("pgrep -f '/usr/bin/lucky' >/dev/null; echo $?");
-            let code = fd ? trim(fd.read('all')) : "1";
+            let fd = popen("ubus call service list '{\"name\": \"lucky\"}'");
+            let output = fd ? fd.read('all') : "";
             if (fd) fd.close();
-            return { running: code === "0" };
+            
+            let running = false;
+            if (output) {
+                try {
+                    let obj = json(output);
+                    if (obj && obj.lucky && obj.lucky.instances) {
+                        for (let inst in obj.lucky.instances) {
+                            if (obj.lucky.instances[inst].running === true) {
+                                running = true;
+                                break;
+                            }
+                        }
+                    }
+                } catch(err) {}
+            }
+            return { running: running };
         }
     },
     get_info: {
         call: function() {
             let e = {};
-            let fd = popen("/usr/bin/lucky -info");
+            let configPath = get_configdir();
+            let fd = popen(configPath ? `/usr/bin/lucky -info -cd ${configPath}` : "/usr/bin/lucky -info");
             if (fd) {
                 e.luckyInfo = trim(fd.read('all'));
                 fd.close();
             }
 
-            let configPath = get_configdir();
             let cmd = configPath ? `/usr/bin/lucky -baseConfInfo -cd ${configPath}` : `/usr/bin/lucky -baseConfInfo`;
             fd = popen(cmd);
             if (fd) {
