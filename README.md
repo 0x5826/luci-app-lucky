@@ -45,7 +45,6 @@ opkg install luci-app-lucky_*.ipk
 
 ## 🤝 鸣谢
 
-本项目基于 [Lucky](https://github.com/gdy666/lucky) 原生程序开发，部分逻辑参考了 `luci-app-lucky-lua` 等优秀开源实践。
+- [lucky](https://github.com/gdy666/lucky): 本项目核心二进制程序。
+- [luci-app-lucky-lua](https://github.com/sirpdboy/luci-app-lucky): 部分 UI 逻辑参考。
 
----
-由 **广龙 (Guanglong)** 维护与优化。
