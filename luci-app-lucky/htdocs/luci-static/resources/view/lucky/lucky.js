@@ -77,7 +77,8 @@ return view.extend({
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Admin Panel Login Info')), E('td', {class: 'td left', id: '_luckyLoginInfo'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Admin Http Port')), E('td', {class: 'td left', id: '_luckyHttpPort'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Admin Safe URL')), E('td', {class: 'td left', id: '_luckySafeURL'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Allow Internet access')), E('td', {class: 'td left', id: '_luckyAllowInternetaccess'}, _('Collecting data...')) ])
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Allow Internet access')), E('td', {class: 'td left', id: '_luckyAllowInternetaccess'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Config dir path')), E('td', {class: 'td left', id: '_luckyConfigDir'}, _('Collecting data...')) ])
             ]);
             container.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Admin Panel Information')), table2 ]));
 
@@ -258,6 +259,23 @@ return view.extend({
                         })
                     ]);
 
+                    dom.content(container.querySelector('#_luckyConfigDir'), [
+                        E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:30%', value: uci.get('lucky', '@lucky[0]', 'configdir') || "/etc/config/lucky.daji"}),
+                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
+                        E('input', {
+                            type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
+                            click: function() {
+                                var newDir = prompt(_('Config dir path'));
+                                if (!newDir) return;
+                                callSetConfig('configdir', newDir).then(function(res) {
+                                    if (res && res.ret == 0) {
+                                        callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
+                                    } else alert(_('update failed'));
+                                });
+                            }
+                        })
+                    ]);
+
                     if (baseConf.AllowInternetaccess) {
                         dom.content(container.querySelector('#_luckyAllowInternetaccess'), [
                             E('b', {style: 'color:green'}, _('allow')),
@@ -302,13 +320,6 @@ return view.extend({
 
             return container;
         }, this);
-
-        s = m.section(form.TypedSection, 'lucky', _('Basic Settings'));
-        s.anonymous = true;
-        s.addremove = false;
-
-        o = s.option(form.Value, 'configdir', _('Config dir path'), _('The path to store the config file'));
-        o.placeholder = '/etc/config/lucky.daji';
 
         return m.render();
     },

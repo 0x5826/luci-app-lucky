@@ -93,6 +93,12 @@ const methods = {
                 }
                 system(cmd);
                 ret = 0;
+            } else if (key === "configdir") {
+                let c = cursor();
+                c.load('lucky');
+                c.set('lucky', '@lucky[0]', 'configdir', value);
+                c.commit('lucky');
+                ret = 0;
             } else if (key === "reset_auth_info") {
                 let configPath = get_configdir();
                 let cmd1 = `/usr/bin/lucky -setconf -key AdminAccount -value 666`;
