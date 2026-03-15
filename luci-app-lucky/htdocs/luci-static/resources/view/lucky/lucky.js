@@ -9,7 +9,7 @@
 var callGetStatus = rpc.declare({
     object: 'luci.lucky',
     method: 'get_status',
-    expect: { running: false }
+    expect: { }
 });
 
 var callGetInfo = rpc.declare({
@@ -294,7 +294,7 @@ return view.extend({
 
             poll.add(function() {
                 return callGetStatus().then(function(data) {
-                    if (data) {
+                    if (data && typeof(data.running) != 'undefined') {
                         if (luckyPreState != data.running) {
                             callGetInfo().then(function(newInfo) { flushLuckyInfo(newInfo); });
                         }
