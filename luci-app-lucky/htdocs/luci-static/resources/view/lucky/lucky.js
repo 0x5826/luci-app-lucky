@@ -44,7 +44,7 @@ return view.extend({
         var info = data[1] || {};
         var m, s, o;
 
-        m = new form.Map('lucky', _('Lucky'), _('IPv4/IPv6端口转发,动态域名服务,http/https反向代理，网络唤醒(可通过第三方物联网平台接入各大语音助手实现语音控制开关电脑)'));
+        m = new form.Map('lucky', _('Lucky'), _('IPv4/IPv6 port forwarding, DDNS, HTTP/HTTPS reverse proxy, WOL and more.'));
 
         s = m.section(form.TypedSection, 'lucky');
         s.anonymous = true;
