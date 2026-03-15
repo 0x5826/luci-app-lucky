@@ -56,7 +56,7 @@ return view.extend({
             '.lucky-table td { border: none !important; padding: 8px 4px !important; vertical-align: middle; }',
             '.lucky-table td:first-child { width: 33%; font-weight: bold; color: #333; }',
             '.cbi-section legend { margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #eee; width: 100%; padding-bottom: 5px; }',
-            '#_luckyLogView { width: 100%; height: 450px; background: #000; color: #00ff00; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 10px; }',
+            '#_luckyLogView { width: 100%; height: 450px; background: #f4f4f4; color: #333; padding: 10px; border: 1px solid #ccc; border-radius: 3px; font-family: monospace; font-size: 12px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 10px; }',
             '.cbi-tabmenu { margin-bottom: 15px; }'
         ]);
         document.head.appendChild(style);

@@ -118,7 +118,7 @@ const methods = {
     },
     get_log: {
         call: function() {
-            let fd = popen("logread | grep 'lucky\\[' | tail -n 100");
+            let fd = popen("logread -e lucky | tail -n 100");
             let log = fd ? fd.read('all') : "";
             if (fd) fd.close();
             return { log: log };

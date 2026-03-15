@@ -3,7 +3,7 @@
 		"description": "Grant UCI and UBUS access for luci-app-lucky",
 		"read": {
 			"ubus": {
-				"luci.lucky": [ "get_status", "get_info" ]
+				"luci.lucky": [ "get_status", "get_info", "get_log" ]
 			},
 			"uci": [ "lucky" ],
 			"file": {
