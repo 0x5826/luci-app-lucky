@@ -134,8 +134,8 @@ return view.extend({
                             E('b', {style: 'color:red'}, _('The Lucky service is not running.')),
                             '\u00a0\u00a0', btnStart, '\u00a0', btnStop, '\u00a0', btnRestart
                         ]);
-                        dom.content(luckyAdminOpen, E('b', {style: 'color:red'}, _('Service not running, Admin Panel is unavailable')));
-                        dom.content(luckyAdminLinkNode, E('b', {style: 'color:red'}, _('Please start the service first to access the admin panel')));
+                        dom.content(luckyAdminOpen, E('span', {style: 'color:grey'}, _('Service not running, Admin Panel is unavailable')));
+                        dom.content(luckyAdminLinkNode, '');
                     } else {
                         dom.content(luckyStatus, E('b', {style: 'color:red'}, _('Not installed')));
                         dom.content(luckyAdminOpen, '');
