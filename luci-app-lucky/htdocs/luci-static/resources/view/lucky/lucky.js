@@ -49,7 +49,7 @@ return view.extend({
 
     render: function(data) {
         var info = data[1] || {};
-        var m, s, o;
+        var m, s;
 
         var style = E('style', {}, [
             '.lucky-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }',
@@ -144,28 +144,27 @@ return view.extend({
 
             var luckyInstalled = false;
             var adminHttpURL = "";
-            var luckyPreState = false;
             var isUpdating = false;
 
-            function updatePageData() {
-                if (isUpdating) return;
-                
-                return Promise.all([
-                    callGetStatus(),
-                    callGetInfo(),
-                    callGetLog()
-                ]).then(function(results) {
-                    var statusData = results[0];
-                    var infoData = results[1];
-                    var logData = results[2];
+            function updatePageData(forceRefreshInfo) {
+                if (isUpdating) return Promise.resolve();
 
-                    if (statusData && typeof(statusData.running) != 'undefined') {
-                        luckyPreState = statusData.running;
-                        flushLuckyStatus(statusData.running);
+                var promises = [callGetStatus(), callGetLog()];
+
+                if (forceRefreshInfo) {
+                    promises.push(callGetInfo());
+                }
+
+                return Promise.all(promises).then(function(results) {
+                    var statusData = results[0];
+                    var logData = results[1];
+
+                    if (forceRefreshInfo && results[2]) {
+                        flushLuckyInfo(results[2]);
                     }
 
-                    if (infoData) {
-                        flushLuckyInfo(infoData);
+                    if (statusData && typeof(statusData.running) != 'undefined') {
+                        flushLuckyStatus(statusData.running);
                     }
 
                     if (logData) {
@@ -231,11 +230,34 @@ return view.extend({
                     E('p', { class: 'spinning' }, _('Updating configuration...'))
                 ]);
                 return callService(action).then(function() {
-                    setTimeout(function() {
-                        isUpdating = false;
-                        ui.hideModal();
-                        updatePageData();
-                    }, 1000);
+                    var startTime = Date.now();
+                    var timeout = 10000;
+
+                    function waitForServiceReady() {
+                        if (Date.now() - startTime > timeout) {
+                            isUpdating = false;
+                            ui.hideModal();
+                            alert(_('Operation timeout, please refresh the page'));
+                            return;
+                        }
+
+                        callGetStatus().then(function(statusData) {
+                            var isRunning = statusData && statusData.running;
+                            var shouldBeRunning = (action === 'start' || action === 'restart');
+
+                            if (shouldBeRunning ? isRunning : !isRunning) {
+                                callGetInfo().then(function(infoData) {
+                                    isUpdating = false;
+                                    ui.hideModal();
+                                    if (infoData) flushLuckyInfo(infoData);
+                                    flushLuckyStatus(statusData.running);
+                                });
+                            } else {
+                                setTimeout(waitForServiceReady, 200);
+                            }
+                        });
+                    }
+                    waitForServiceReady();
                 });
             }
 
@@ -244,15 +266,35 @@ return view.extend({
                 ui.showModal(null, [
                     E('p', { class: 'spinning' }, _('Updating configuration...'))
                 ]);
-                
+
                 return callSetConfig(key, value).then(function(res) {
                     if (res && res.ret == 0) {
                         return callService('restart').then(function() {
-                            setTimeout(function() {
-                                isUpdating = false;
-                                ui.hideModal();
-                                updatePageData();
-                            }, 1000);
+                            var startTime = Date.now();
+                            var timeout = 10000;
+
+                            function waitForServiceReady() {
+                                if (Date.now() - startTime > timeout) {
+                                    isUpdating = false;
+                                    ui.hideModal();
+                                    alert(_('Operation timeout, please refresh the page'));
+                                    return;
+                                }
+
+                                callGetStatus().then(function(statusData) {
+                                    if (statusData && statusData.running) {
+                                        callGetInfo().then(function(infoData) {
+                                            isUpdating = false;
+                                            ui.hideModal();
+                                            if (infoData) flushLuckyInfo(infoData);
+                                            flushLuckyStatus(statusData.running);
+                                        });
+                                    } else {
+                                        setTimeout(waitForServiceReady, 200);
+                                    }
+                                });
+                            }
+                            waitForServiceReady();
                         });
                     } else {
                         isUpdating = false;
