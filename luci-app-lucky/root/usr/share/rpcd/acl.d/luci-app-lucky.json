@@ -1,0 +1,17 @@
+{
+	"luci-app-lucky": {
+		"description": "Grant UCI and UBUS access for luci-app-lucky",
+		"read": {
+			"ubus": {
+				"luci.lucky": [ "get_status", "get_info" ]
+			},
+			"uci": [ "lucky" ]
+		},
+		"write": {
+			"ubus": {
+				"luci.lucky": [ "set_config", "service" ]
+			},
+			"uci": [ "lucky" ]
+		}
+	}
+}
