@@ -95,7 +95,6 @@ return view.extend({
                 
                 var btnStart = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-apply', value: _('Start'),
-                    disabled: status,
                     click: function(ev) {
                         ev.target.disabled = true;
                         callService('start').then(function() { setTimeout(function() { location.reload(); }, 1500); });
@@ -104,7 +103,6 @@ return view.extend({
 
                 var btnStop = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-reset', value: _('Stop'),
-                    disabled: !status,
                     click: function(ev) {
                         ev.target.disabled = true;
                         callService('stop').then(function() { setTimeout(function() { location.reload(); }, 1500); });
@@ -113,12 +111,15 @@ return view.extend({
 
                 var btnRestart = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Restart'),
-                    disabled: !status,
                     click: function(ev) {
                         ev.target.disabled = true;
                         callService('restart').then(function() { setTimeout(function() { location.reload(); }, 1500); });
                     }
                 });
+
+                btnStart.disabled = status;
+                btnStop.disabled = !status;
+                btnRestart.disabled = !status;
 
                 if (status) {
                     luckyInstalled = true;
