@@ -7,6 +7,9 @@ msgstr "Lucky"
 msgid "IPv4/IPv6 port forwarding, DDNS, HTTP/HTTPS reverse proxy, WOL and more."
 msgstr "IPv4/IPv6端口转发, 动态域名服务, HTTP/HTTPS反向代理, 网络唤醒以及更多功能。"
 
+msgid "Settings"
+msgstr "设置"
+
 msgid "Service Control"
 msgstr "服务控制"
 
@@ -18,6 +21,9 @@ msgstr "管理面板信息"
 
 msgid "Basic Settings"
 msgstr "基础设置"
+
+msgid "Running Logs"
+msgstr "运行日志"
 
 msgid "Installation Status"
 msgstr "安装状态"
@@ -37,10 +43,10 @@ msgstr "程序版本"
 msgid "Collecting data..."
 msgstr "正在收集数据..."
 
-msgid "The Lucky service is running."
+msgid "Running"
 msgstr "运行中"
 
-msgid "The Lucky service is not running."
+msgid "Not running"
 msgstr "未运行"
 
 msgid "Not installed"
@@ -82,7 +88,7 @@ msgstr "服务未运行，管理后台不可用"
 msgid "DefaultAuth"
 msgstr "默认登录账号密码"
 
-msgid "Reset 666 as admin account and password?"
+msgid "Reset Account and Password"
 msgstr "重置帐号密码"
 
 msgid "update success"
@@ -117,3 +123,9 @@ msgstr "获取最新版本"
 
 msgid "portValueError"
 msgstr "端口值无效"
+
+msgid "No log available."
+msgstr "暂无可用日志。"
+
+msgid "Fetching logs..."
+msgstr "正在拉取日志..."

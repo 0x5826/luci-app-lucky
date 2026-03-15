@@ -116,6 +116,14 @@ const methods = {
             return { ret: ret };
         }
     },
+    get_log: {
+        call: function() {
+            let fd = popen("logread | grep 'lucky\\[' | tail -n 100");
+            let log = fd ? fd.read('all') : "";
+            if (fd) fd.close();
+            return { log: log };
+        }
+    },
     service: {
         args: { action: 'action' },
         call: function(req) {

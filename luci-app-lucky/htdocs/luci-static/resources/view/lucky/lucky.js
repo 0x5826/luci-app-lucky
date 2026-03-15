@@ -18,6 +18,12 @@ var callGetInfo = rpc.declare({
     expect: { }
 });
 
+var callGetLog = rpc.declare({
+    object: 'luci.lucky',
+    method: 'get_log',
+    expect: { }
+});
+
 var callSetConfig = rpc.declare({
     object: 'luci.lucky',
     method: 'set_config',
@@ -44,13 +50,14 @@ return view.extend({
         var info = data[1] || {};
         var m, s, o;
 
-        // Inject custom CSS to remove horizontal lines and unify padding
         var style = E('style', {}, [
             '.lucky-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }',
             '.lucky-table tr { border: none !important; }',
             '.lucky-table td { border: none !important; padding: 8px 4px !important; vertical-align: middle; }',
             '.lucky-table td:first-child { width: 33%; font-weight: bold; color: #333; }',
-            '.cbi-section legend { margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #eee; width: 100%; padding-bottom: 5px; }'
+            '.cbi-section legend { margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #eee; width: 100%; padding-bottom: 5px; }',
+            '#_luckyLogView { width: 100%; height: 450px; background: #000; color: #00ff00; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 10px; }',
+            '.cbi-tabmenu { margin-bottom: 15px; }'
         ]);
         document.head.appendChild(style);
 
@@ -63,6 +70,36 @@ return view.extend({
         s.render = L.bind(function(view, section_id) {
             var container = E('div');
             
+            // Tab switcher logic
+            var activeTab = 'settings';
+            
+            var tabMenu = E('ul', { class: 'cbi-tabmenu' }, [
+                E('li', { class: 'cbi-tab', 'data-tab': 'settings' }, E('a', {
+                    click: function(ev) { switchTab(ev, 'settings'); }
+                }, _('Settings'))),
+                E('li', { class: 'cbi-tab-disabled', 'data-tab': 'logs' }, E('a', {
+                    click: function(ev) { switchTab(ev, 'logs'); }
+                }, _('Running Logs')))
+            ]);
+            container.appendChild(tabMenu);
+
+            function switchTab(ev, tab) {
+                activeTab = tab;
+                container.querySelectorAll('.cbi-tab, .cbi-tab-disabled').forEach(function(li) {
+                    li.className = (li.getAttribute('data-tab') === tab) ? 'cbi-tab' : 'cbi-tab-disabled';
+                });
+                container.querySelector('#_luckySettingsPane').style.display = (tab === 'settings') ? '' : 'none';
+                container.querySelector('#_luckyLogsPane').style.display = (tab === 'logs') ? '' : 'none';
+                if (tab === 'logs') {
+                    var logView = container.querySelector('#_luckyLogView');
+                    logView.scrollTop = logView.scrollHeight;
+                }
+                ev.preventDefault();
+            }
+
+            // Settings Pane
+            var settingsPane = E('div', { id: '_luckySettingsPane' });
+            
             var statusSection = E('fieldset', {class: 'cbi-section'}, [
                 E('legend', {}, _('Service Control')),
                 E('table', {class: 'lucky-table'}, [
@@ -72,7 +109,7 @@ return view.extend({
                     ])
                 ])
             ]);
-            container.appendChild(statusSection);
+            settingsPane.appendChild(statusSection);
 
             var table1 = E('table', {class: 'lucky-table'}, [
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
@@ -80,7 +117,7 @@ return view.extend({
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Compilation Time')), E('td', {class: 'td left', id: '_luckyCompilationTime'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Version')), E('td', {class: 'td left', id: '_luckyVersion'}, _('Collecting data...')) ])
             ]);
-            container.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Main Program Information')), table1 ]));
+            settingsPane.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Main Program Information')), table1 ]));
 
             var table2 = E('table', {class: 'lucky-table'}, [
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Panel')), E('td', {class: 'td left', id: '_luckyAdminOpen'}, _('Collecting data...')) ]),
@@ -89,18 +126,40 @@ return view.extend({
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Safe URL')), E('td', {class: 'td left', id: '_luckySafeURL'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Allow Internet access')), E('td', {class: 'td left', id: '_luckyAllowInternetaccess'}, _('Collecting data...')) ])
             ]);
-            container.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Admin Panel Information')), table2 ]));
+            settingsPane.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Admin Panel Information')), table2 ]));
 
             var table3 = E('table', {class: 'lucky-table'}, [
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Config dir path')), E('td', {class: 'td left', id: '_luckyConfigDir'}, _('Collecting data...')) ])
             ]);
-            container.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Basic Settings')), table3 ]));
+            settingsPane.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Basic Settings')), table3 ]));
+
+            container.appendChild(settingsPane);
+
+            // Logs Pane
+            var logsPane = E('div', { id: '_luckyLogsPane', style: 'display:none' }, [
+                E('fieldset', {class: 'cbi-section'}, [
+                    E('legend', {}, _('Running Logs')),
+                    E('div', {id: '_luckyLogView'}, _('Fetching logs...'))
+                ])
+            ]);
+            container.appendChild(logsPane);
 
             var luckyInstalled = false;
             var adminHttpURL = "";
             var luckyPreState = false;
 
             function updatePageData() {
+                callGetLog().then(function(res) {
+                    var logView = container.querySelector('#_luckyLogView');
+                    if (res && res.log) {
+                        var isAtBottom = logView.scrollHeight - logView.clientHeight <= logView.scrollTop + 1;
+                        dom.content(logView, res.log);
+                        if (isAtBottom) logView.scrollTop = logView.scrollHeight;
+                    } else if (res && res.log === "") {
+                        dom.content(logView, _('No log available.'));
+                    }
+                });
+
                 return callGetStatus().then(function(data) {
                     if (data && typeof(data.running) != 'undefined') {
                         luckyPreState = data.running;
@@ -147,14 +206,14 @@ return view.extend({
                 if (status) {
                     luckyInstalled = true;
                     dom.content(luckyStatus, [
-                        E('b', {style: 'color:green'}, _('The Lucky service is running.')),
+                        E('b', {style: 'color:green'}, _('Running')),
                         '\u00a0\u00a0', btnStart, '\u00a0', btnStop, '\u00a0', btnRestart
                     ]);
                     dom.content(luckyAdminOpen, E('a', {href: adminHttpURL, target: '_blank', style: 'font-weight:bold; color:blue;'}, adminHttpURL));
                 } else {
                     if (luckyInstalled) {
                         dom.content(luckyStatus, [
-                            E('b', {style: 'color:red'}, _('The Lucky service is not running.')),
+                            E('b', {style: 'color:red'}, _('Not running')),
                             '\u00a0\u00a0', btnStart, '\u00a0', btnStop, '\u00a0', btnRestart
                         ]);
                         dom.content(luckyAdminOpen, E('span', {style: 'color:grey'}, _('Service not running, Admin Panel is unavailable')));
@@ -221,11 +280,11 @@ return view.extend({
 
                     dom.content(container.querySelector('#_luckyLoginInfo'), [
                         E('b', {style: 'color:green'}, _('DefaultAuth') + ":666"),
-                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
+                        '\u00a0\u00a0',
                         E('input', {
-                            type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Reset 666 as admin account and password?').replace('?', ''),
+                            type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Reset Account and Password'),
                             click: function() {
-                                if (confirm(_('Reset 666 as admin account and password?'))) {
+                                if (confirm(_('Reset Account and Password'))) {
                                     callSetConfig('reset_auth_info', '').then(function(res) {
                                         if (res && res.ret == 0) {
                                             updatePageData();
@@ -332,7 +391,7 @@ return view.extend({
 
             flushLuckyInfo(info);
 
-            poll.add(updatePageData, 3);
+            poll.add(updatePageData, 5);
 
             return container;
         }, this);
