@@ -5,6 +5,7 @@
 'require poll';
 'require view';
 'require dom';
+'require ui';
 
 var callGetStatus = rpc.declare({
     object: 'luci.lucky',
@@ -28,7 +29,7 @@ var callSetConfig = rpc.declare({
     object: 'luci.lucky',
     method: 'set_config',
     params: ['key', 'value'],
-    expect: { ret: 1 }
+    expect: { }
 });
 
 var callService = rpc.declare({
@@ -70,7 +71,6 @@ return view.extend({
         s.render = L.bind(function(view, section_id) {
             var container = E('div');
             
-            // Tab switcher logic
             var activeTab = 'settings';
             
             var tabMenu = E('ul', { class: 'cbi-tabmenu' }, [
@@ -97,7 +97,6 @@ return view.extend({
                 ev.preventDefault();
             }
 
-            // Settings Pane
             var settingsPane = E('div', { id: '_luckySettingsPane' });
             
             var statusSection = E('fieldset', {class: 'cbi-section'}, [
@@ -135,7 +134,6 @@ return view.extend({
 
             container.appendChild(settingsPane);
 
-            // Logs Pane
             var logsPane = E('div', { id: '_luckyLogsPane', style: 'display:none' }, [
                 E('fieldset', {class: 'cbi-section'}, [
                     E('legend', {}, _('Running Logs')),
@@ -147,8 +145,11 @@ return view.extend({
             var luckyInstalled = false;
             var adminHttpURL = "";
             var luckyPreState = false;
+            var isUpdating = false;
 
             function updatePageData() {
+                if (isUpdating) return;
+                
                 callGetLog().then(function(res) {
                     var logView = container.querySelector('#_luckyLogView');
                     if (res && res.log) {
@@ -199,9 +200,9 @@ return view.extend({
                     }
                 });
 
-                btnStart.disabled = status;
-                btnStop.disabled = !status;
-                btnRestart.disabled = !status;
+                btnStart.disabled = status || isUpdating;
+                btnStop.disabled = !status || isUpdating;
+                btnRestart.disabled = !status || isUpdating;
 
                 if (status) {
                     luckyInstalled = true;
@@ -222,6 +223,29 @@ return view.extend({
                         dom.content(luckyAdminOpen, '');
                     }
                 }
+            }
+
+            function handleUpdate(key, value) {
+                isUpdating = true;
+                ui.showModal(null, [
+                    E('p', { class: 'spinning' }, _('Updating configuration...'))
+                ]);
+                
+                return callSetConfig(key, value).then(function(res) {
+                    if (res && res.ret == 0) {
+                        return callService('restart').then(function() {
+                            setTimeout(function() {
+                                isUpdating = false;
+                                ui.hideModal();
+                                updatePageData();
+                            }, 3000);
+                        });
+                    } else {
+                        isUpdating = false;
+                        ui.hideModal();
+                        alert(_('update failed'));
+                    }
+                });
             }
 
             function isNumber(val) {
@@ -285,11 +309,7 @@ return view.extend({
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Reset Account and Password'),
                             click: function() {
                                 if (confirm(_('Reset Account and Password'))) {
-                                    callSetConfig('reset_auth_info', '').then(function(res) {
-                                        if (res && res.ret == 0) {
-                                            updatePageData();
-                                        } else alert(_('update failed'));
-                                    });
+                                    handleUpdate('reset_auth_info', '');
                                 }
                             }
                         })
@@ -306,11 +326,7 @@ return view.extend({
                                 if (!isNumber(newPort)) { alert(_('portValueError')); return; }
                                 var np = parseInt(newPort);
                                 if (np <= 0 || np > 65535) { alert(_('portValueError')); return; }
-                                callSetConfig('admin_http_port', newPort).then(function(res) {
-                                    if (res && res.ret == 0) {
-                                        callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
-                                    } else alert(_('update failed'));
-                                });
+                                handleUpdate('admin_http_port', newPort);
                             }
                         })
                     ]);
@@ -323,11 +339,7 @@ return view.extend({
                             click: function() {
                                 var newSafeURL = prompt(_('Admin Safe URL'));
                                 if (newSafeURL == null) return;
-                                callSetConfig('admin_safe_url', newSafeURL).then(function(res) {
-                                    if (res && res.ret == 0) {
-                                        callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
-                                    } else alert(_('update failed'));
-                                });
+                                handleUpdate('admin_safe_url', newSafeURL);
                             }
                         })
                     ]);
@@ -340,11 +352,7 @@ return view.extend({
                                 type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('not allow'),
                                 click: function() {
                                     if (confirm(_('Are you sure Disable Internetaccess?'))) {
-                                        callSetConfig('switch_Internetaccess', 'false').then(function(res) {
-                                            if (res && res.ret == 0) {
-                                                callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
-                                            } else alert(_('update failed'));
-                                        });
+                                        handleUpdate('switch_Internetaccess', 'false');
                                     }
                                 }
                             })
@@ -357,18 +365,13 @@ return view.extend({
                                 type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('allow'),
                                 click: function() {
                                     if (confirm(_('Are you sure Enalbe Internetaccess?'))) {
-                                        callSetConfig('switch_Internetaccess', 'true').then(function(res) {
-                                            if (res && res.ret == 0) {
-                                                callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
-                                            } else alert(_('update failed'));
-                                        });
+                                        handleUpdate('switch_Internetaccess', 'true');
                                     }
                                 }
                             })
                         ]);
                     }
 
-                    // Render configdir
                     var configPath = uci.get('lucky', '@lucky[0]', 'configdir') || '/etc/config/lucky.daji';
                     dom.content(container.querySelector('#_luckyConfigDir'), [
                         E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:60%', value: configPath}),
@@ -378,11 +381,7 @@ return view.extend({
                             click: function() {
                                 var newDir = prompt(_('Config dir path'), configPath);
                                 if (!newDir) return;
-                                callSetConfig('configdir', newDir).then(function(res) {
-                                    if (res && res.ret == 0) {
-                                        updatePageData();
-                                    } else alert(_('update failed'));
-                                });
+                                handleUpdate('configdir', newDir);
                             }
                         })
                     ]);

@@ -8,6 +8,11 @@ function trim(s) {
     return s;
 }
 
+function shellquote(s) {
+    if (!s) return "''";
+    return "'" + replace(s, "'", "'\\''") + "'";
+}
+
 function get_configdir() {
     let c = cursor();
     c.load('lucky');
@@ -43,13 +48,13 @@ const methods = {
         call: function() {
             let e = {};
             let configPath = get_configdir();
-            let fd = popen(configPath ? `/usr/bin/lucky -info -cd ${configPath}` : "/usr/bin/lucky -info");
+            let fd = popen(configPath ? `/usr/bin/lucky -info -cd ${shellquote(configPath)}` : "/usr/bin/lucky -info");
             if (fd) {
                 e.luckyInfo = trim(fd.read('all'));
                 fd.close();
             }
 
-            let cmd = configPath ? `/usr/bin/lucky -baseConfInfo -cd ${configPath}` : `/usr/bin/lucky -baseConfInfo`;
+            let cmd = configPath ? `/usr/bin/lucky -baseConfInfo -cd ${shellquote(configPath)}` : `/usr/bin/lucky -baseConfInfo`;
             fd = popen(cmd);
             if (fd) {
                 let confStr = trim(fd.read('all'));
@@ -72,6 +77,14 @@ const methods = {
             return e;
         }
     },
+    get_log: {
+        call: function() {
+            let fd = popen("logread -e lucky | tail -n 100");
+            let log = fd ? fd.read('all') : "";
+            if (fd) fd.close();
+            return { log: log };
+        }
+    },
     set_config: {
         args: { key: 'key', value: 'value' },
         call: function(req) {
@@ -81,15 +94,25 @@ const methods = {
             let key = req.args.key;
             let value = req.args.value || "";
             let ret = 1;
+            let configPath = get_configdir();
 
             if (key === "admin_http_port" || key === "admin_safe_url" || key === "switch_Internetaccess") {
-                let configPath = get_configdir();
-                let cmd = `/usr/bin/lucky -setconf -key ${key}`;
-                if (value !== "") {
-                    cmd += ` -value ${value}`;
+                let realKey = key;
+                let cmd = "";
+                
+                if (key === "admin_http_port") realKey = "AdminWebListenPort";
+                else if (key === "admin_safe_url") realKey = "SafeURL";
+                else if (key === "switch_Internetaccess") realKey = "AllowInternetaccess";
+
+                // Special handling for safe url cancellation
+                if (key === "admin_safe_url" && value === "") {
+                    cmd = `/usr/bin/lucky -rCancelSafeURL`;
+                } else {
+                    cmd = `/usr/bin/lucky -setconf -key ${shellquote(realKey)} -value ${shellquote(value)}`;
                 }
+
                 if (configPath !== "") {
-                    cmd += ` -cd ${configPath}`;
+                    cmd += ` -cd ${shellquote(configPath)}`;
                 }
                 system(cmd);
                 ret = 0;
@@ -100,28 +123,19 @@ const methods = {
                 c.commit('lucky');
                 ret = 0;
             } else if (key === "reset_auth_info") {
-                let configPath = get_configdir();
                 let cmd1 = `/usr/bin/lucky -setconf -key AdminAccount -value 666`;
                 let cmd2 = `/usr/bin/lucky -setconf -key AdminPassword -value 666`;
                 if (configPath !== "") {
-                    cmd1 += ` -cd ${configPath}`;
-                    cmd2 += ` -cd ${configPath}`;
+                    cmd1 += ` -cd ${shellquote(configPath)}`;
+                    cmd2 += ` -cd ${shellquote(configPath)}`;
                 }
                 system(cmd1);
                 system(cmd2);
-                system("/etc/init.d/lucky restart");
+                // Restart is now handled by frontend handleUpdate
                 ret = 0;
             }
 
             return { ret: ret };
-        }
-    },
-    get_log: {
-        call: function() {
-            let fd = popen("logread -e lucky | tail -n 100");
-            let log = fd ? fd.read('all') : "";
-            if (fd) fd.close();
-            return { log: log };
         }
     },
     service: {
@@ -139,11 +153,10 @@ const methods = {
             } else if (action === "stop") {
                 c.set('lucky', '@lucky[0]', 'enabled', '0');
             }
+            
             if (action === "start" || action === "restart" || action === "stop") {
                 c.commit('lucky');
-                // Use reload to ensure procd re-reads config and starts/stops properly
                 system(`/etc/init.d/lucky ${action} >/dev/null 2>&1`);
-                // Give it a little time to stabilize
                 system("sleep 1");
             }
             return { success: true };
