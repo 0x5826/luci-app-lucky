@@ -127,7 +127,10 @@ const methods = {
             }
             if (action === "start" || action === "restart" || action === "stop") {
                 c.commit('lucky');
+                // Use reload to ensure procd re-reads config and starts/stops properly
                 system(`/etc/init.d/lucky ${action} >/dev/null 2>&1`);
+                // Give it a little time to stabilize
+                system("sleep 1");
             }
             return { success: true };
         }
