@@ -110,10 +110,9 @@ const methods = {
             } else if (action === "stop") {
                 c.set('lucky', '@lucky[0]', 'enabled', '0');
             }
-            c.commit('lucky');
-            
             if (action === "start" || action === "restart" || action === "stop") {
-                system(`/etc/init.d/lucky ${action}`);
+                c.commit('lucky');
+                system(`/etc/init.d/lucky ${action} >/dev/null 2>&1`);
             }
             return { success: true };
         }

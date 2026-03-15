@@ -56,9 +56,19 @@ return view.extend({
             var adminLink = E('p', {id: '_luckyAdminLink', style: 'font-weight: bold; margin-bottom: 10px;'});
             container.appendChild(E('fieldset', {class: 'cbi-section'}, adminLink));
 
+            var statusSection = E('fieldset', {class: 'cbi-section'}, [
+                E('legend', {}, _('Service Control')),
+                E('table', {class: 'table cbi-section-table'}, [
+                    E('tr', {class: 'tr'}, [
+                        E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Lucky Status')),
+                        E('td', {class: 'td left', id: '_luckyStatus'}, _('Collecting data...'))
+                    ])
+                ])
+            ]);
+            container.appendChild(statusSection);
+
             var table1 = E('table', {class: 'table cbi-section-table'}, [
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Lucky Status')), E('td', {class: 'td left', id: '_luckyStatus'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Arch')), E('td', {class: 'td left', id: '_luckyArch'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Compilation Time')), E('td', {class: 'td left', id: '_luckyCompilationTime'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Version')), E('td', {class: 'td left', id: '_luckyVersion'}, _('Collecting data...')) ])
