@@ -6,6 +6,7 @@
 			"type": "alias",
 			"path": "admin/services/lucky/setting"
 		},
+		"acl": [ "luci-app-lucky" ],
 		"dependent": true
 	},
 	"admin/services/lucky/setting": {
@@ -15,6 +16,7 @@
 			"type": "view",
 			"path": "lucky/lucky"
 		},
+		"acl": [ "luci-app-lucky" ],
 		"leaf": true
 	}
 }

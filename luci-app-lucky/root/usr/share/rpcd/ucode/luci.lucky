@@ -7,26 +7,23 @@
 
 'use strict';
 
-import { access, popen } from 'fs';
-import { cursor } from 'uci';
+const fs = require('fs');
+const uci = require('uci').cursor();
 
-const uci = cursor();
-
-/* Kanged from ucode/luci */
 function shellquote(s) {
 	if (s === null || s === undefined) return "''";
-	return `'${replace(s.toString(), "'", "'\\''")}'`;
+	return "'" + s.toString().replace(/'/g, "'\\''") + "'";
 }
 
 function trim(s) {
 	if (!s) return s;
-	return replace(s.toString(), /^\s+|\s+$/g, "");
+	return s.toString().replace(/^\s+|\s+$/g, '');
 }
 
 function get_config_path() {
 	let path = uci.get('lucky', '@lucky[0]', 'configdir');
 	if (!path) {
-		path = '/etc/config/lucky.daji'; // Default value from Lua code's placeholder
+		path = '/etc/lucky';
 	}
 	return trim(path);
 }
@@ -49,28 +46,28 @@ const methods = {
 			};
 
 			// luckyarch
-			const fd_arch = popen('/usr/bin/luckyarch');
+			let fd_arch = fs.popen('/usr/bin/luckyarch');
 			if (fd_arch) {
 				res.luckyArch = trim(fd_arch.read('all'));
 				fd_arch.close();
 			}
 
-			if (!access('/usr/bin/lucky')) {
+			if (!fs.access('/usr/bin/lucky')) {
 				res.error = 'lucky not found';
 				return res;
 			}
 
-			const configPath = get_config_path();
+			let configPath = get_config_path();
 
 			// lucky -info
-			const fd_info = popen(`/usr/bin/lucky -info -cd ${shellquote(configPath)}`);
+			let fd_info = fs.popen('/usr/bin/lucky -info -cd ' + shellquote(configPath));
 			if (fd_info) {
 				res.luckyInfo = trim(fd_info.read('all'));
 				fd_info.close();
 			}
 
 			// lucky -baseConfInfo
-			const fd_base = popen(`/usr/bin/lucky -baseConfInfo -cd ${shellquote(configPath)}`);
+			let fd_base = fs.popen('/usr/bin/lucky -baseConfInfo -cd ' + shellquote(configPath));
 			if (fd_base) {
 				let baseInfoStr = trim(fd_base.read('all'));
 				fd_base.close();
@@ -81,7 +78,7 @@ const methods = {
 							res.LuckyBaseConfigure = baseObj.BaseConfigure;
 						}
 					} catch(e) {
-						// Parse error, ignore
+						// Parse error
 					}
 				}
 			}
@@ -93,21 +90,21 @@ const methods = {
 	set_config: {
 		args: { key: 'key', value: 'value' },
 		call: function(req) {
-			if (!access('/usr/bin/lucky'))
+			if (!fs.access('/usr/bin/lucky'))
 				return { ret: 1, error: 'lucky not found' };
 
 			if (!req.args?.key)
 				return { ret: 1, error: 'missing key parameter' };
 
-			const key = shellquote(req.args.key);
-			const configPath = get_config_path();
+			let key = shellquote(req.args.key);
+			let configPath = get_config_path();
 			let exit_code = 1;
 			
 			if (req.args.value !== null && req.args.value !== undefined) {
-				const value = shellquote(req.args.value);
-				exit_code = system(`/usr/bin/lucky -setconf -key ${key} -value ${value} -cd ${shellquote(configPath)}`);
+				let value = shellquote(req.args.value);
+				exit_code = system('/usr/bin/lucky -setconf -key ' + key + ' -value ' + value + ' -cd ' + shellquote(configPath));
 			} else {
-				exit_code = system(`/usr/bin/lucky -setconf -key ${key} -cd ${shellquote(configPath)}`);
+				exit_code = system('/usr/bin/lucky -setconf -key ' + key + ' -cd ' + shellquote(configPath));
 			}
 
 			return { ret: (exit_code == 0 ? 0 : 1) };
@@ -117,11 +114,11 @@ const methods = {
 	service_action: {
 		args: { action: 'action' },
 		call: function(req) {
-			const action = req.args?.action;
+			let action = req.args?.action;
 			if (action === 'start' || action === 'restart') {
 				uci.set('lucky', '@lucky[0]', 'enabled', '1');
 				uci.commit('lucky');
-				system(`/etc/init.d/lucky ${action}`);
+				system('/etc/init.d/lucky ' + action);
 			} else if (action === 'stop') {
 				uci.set('lucky', '@lucky[0]', 'enabled', '0');
 				uci.commit('lucky');
