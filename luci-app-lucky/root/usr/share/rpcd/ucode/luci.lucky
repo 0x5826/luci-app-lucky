@@ -18,7 +18,7 @@ function get_configdir() {
 const methods = {
     get_status: {
         call: function() {
-            let fd = popen("pgrep -f 'lucky -c' >/dev/null; echo $?");
+            let fd = popen("pgrep -f '/usr/bin/lucky' >/dev/null; echo $?");
             let code = fd ? trim(fd.read('all')) : "1";
             if (fd) fd.close();
             return { running: code === "0" };

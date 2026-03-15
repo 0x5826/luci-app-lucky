@@ -57,8 +57,8 @@ return view.extend({
             container.appendChild(E('fieldset', {class: 'cbi-section'}, adminLink));
 
             var table1 = E('table', {class: 'table cbi-section-table'}, [
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Status')), E('td', {class: 'td left', id: '_luckyStatus'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Lucky Status')), E('td', {class: 'td left', id: '_luckyStatus'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Arch')), E('td', {class: 'td left', id: '_luckyArch'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Compilation Time')), E('td', {class: 'td left', id: '_luckyCompilationTime'}, _('Collecting data...')) ]),
                 E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Version')), E('td', {class: 'td left', id: '_luckyVersion'}, _('Collecting data...')) ])
@@ -89,9 +89,13 @@ return view.extend({
                         '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                         E('input', {
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('are you sure stop lucky service?').replace('?', ''),
-                            click: function() {
+                            click: function(ev) {
                                 if (confirm(_('are you sure stop lucky service?'))) {
-                                    callService('stop');
+                                    ev.target.disabled = true;
+                                    ev.target.value = _('Processing...');
+                                    callService('stop').then(function() {
+                                        setTimeout(function() { location.reload(); }, 1500);
+                                    });
                                 }
                             }
                         })
@@ -105,9 +109,13 @@ return view.extend({
                             '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                             E('input', {
                                 type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('are you sure start lucky service?').replace('?', ''),
-                                click: function() {
+                                click: function(ev) {
                                     if (confirm(_('are you sure start lucky service?'))) {
-                                        callService('start');
+                                        ev.target.disabled = true;
+                                        ev.target.value = _('Processing...');
+                                        callService('start').then(function() {
+                                            setTimeout(function() { location.reload(); }, 1500);
+                                        });
                                     }
                                 }
                             })
