@@ -1,140 +1,98 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
-msgid "Main Program"
-msgstr "主程序"
+msgid "Lucky"
+msgstr "Lucky"
+
+msgid "IPv4/IPv6 port forwarding, DDNS, HTTP/HTTPS reverse proxy, WOL and more."
+msgstr "IPv4/IPv6端口转发, 动态域名服务, HTTP/HTTPS反向代理, 网络唤醒以及更多功能。"
+
+msgid "Service Control"
+msgstr "服务控制"
 
 msgid "Main Program Information"
 msgstr "主程序信息"
 
+msgid "Admin Panel Information"
+msgstr "管理面板信息"
+
+msgid "Basic Settings"
+msgstr "基础设置"
+
 msgid "Installation Status"
 msgstr "安装状态"
+
+msgid "Lucky Status"
+msgstr "Lucky 运行状态"
+
+msgid "Lucky Arch"
+msgstr "程序架构"
 
 msgid "Compilation Time"
 msgstr "编译时间"
 
-msgid "Admin Panel Information"
-msgstr "管理面板信息"
-
-msgid "Config dir path"
-msgstr "配置文件夹位置"
-
-msgid "Lucky"
-msgstr "Lucky"
-
-msgid "ipv4/ipv6 portforward,ddns,reverseproxy proxy,wake on lan,IOT and more..."
-msgstr "IPv4/IPv6端口转发,动态域名服务,http/https反向代理，网络唤醒(可通过第三方物联网平台接入各大语音助手实现语音控制开关电脑)"
-
-msgid "Running state"
-msgstr "运行状态"
-
-msgid "The Lucky service is running."
-msgstr "已启动"
-
-msgid "The Lucky service is not running."
-msgstr "未启动"
-
-msgid "Lucky Status"
-msgstr "Lucky服务状态"
+msgid "Lucky Version"
+msgstr "程序版本"
 
 msgid "Collecting data..."
-msgstr "收集数据..."
+msgstr "正在收集数据..."
 
-msgid "Set the Lucky access port"
-msgstr "设置访问端口"
+msgid "The Lucky service is running."
+msgstr "Lucky 服务正在运行。"
 
-msgid "</br>For specific usage, see:"
-msgstr "</br>具体使用方法参见："
-
-msgid "Base Setting"
-msgstr "基本设置"
+msgid "The Lucky service is not running."
+msgstr "Lucky 服务未运行。"
 
 msgid "Not installed"
-msgstr "没有安装"
+msgstr "未安装"
 
 msgid "Installed"
 msgstr "已安装"
 
-msgid "Admin Panel Login HTTP URL"
-msgstr "管理后台登录地址(http)"
+msgid "Start"
+msgstr "启动"
 
-msgid "Lucky Arch"
-msgstr "当前环境CPU架构"
+msgid "Stop"
+msgstr "停止"
 
-msgid "Lucky Status"
-msgstr "Lucky运行状态"
+msgid "Restart"
+msgstr "重启"
 
-msgid "Lucky Compilation time"
-msgstr "编译时间"
-
-msgid "Lucky Version"
-msgstr "版本"
-
-msgid "Admin Panel Login Info"
-msgstr "管理后台登录信息"
-
-msgid "Account"
-msgstr "账号"
-
-msgid "Password"
-msgstr "密码"
+msgid "Processing..."
+msgstr "处理中..."
 
 msgid "Admin Panel"
 msgstr "Lucky 后台管理"
 
-msgid "Open AdminURL"
-msgstr "打开后台管理"
+msgid "Admin Panel Login Info"
+msgstr "管理后台登录信息"
 
 msgid "Lucky Admin Http Port"
-msgstr "Lucky 后台HTTP端口"
-
-msgid "Change"
-msgstr "更改"
-
-msgid "portValueError"
-msgstr "端口值有误"
-
-msgid "Get Lucky Latest Version"
-msgstr "获取Lucky最新版本"
-
-msgid "get latest version"
-msgstr "查询最新"
+msgstr "Lucky 管理端口"
 
 msgid "Admin Safe URL"
-msgstr "安全入口"
+msgstr "管理安全入口"
+
+msgid "Allow Internet access"
+msgstr "允许外网访问管理界面"
+
+msgid "Service not running, Admin Panel is unavailable"
+msgstr "服务未运行，管理后台不可用"
 
 msgid "DefaultAuth"
 msgstr "默认登录账号密码"
 
 msgid "Reset 666 as admin account and password?"
-msgstr "重置账号密码为666?"
+msgstr "确定要将账号和密码重置为 666 吗？"
 
 msgid "update success"
-msgstr "修改成功"
+msgstr "更新成功"
 
 msgid "update failed"
-msgstr "修改失败"
+msgstr "更新失败"
 
-msgid "Allow Internet access"
-msgstr "外网登录后台"
-
-msgid "Are you sure Enalbe Internetaccess?"
-msgstr "确定要启用外网访问?"
-
-msgid "Are you sure Disable Internetaccess?"
-msgstr "确定要禁用外网访问?"
-
-msgid "are you sure stop lucky service?"
-msgstr "确定要停止Lucky服务?"
-
-msgid "are you sure start lucky service?"
-msgstr "确定要启动Lucky服务?"
-
-msgid "Config file path"
-msgstr "配置文件存放位置"
-
-msgid "The path to store the config file"
-msgstr "存放配置文件的位置"
+msgid "Change"
+msgstr "修改"
 
 msgid "allow"
 msgstr "允许"
@@ -142,5 +100,20 @@ msgstr "允许"
 msgid "not allow"
 msgstr "禁止"
 
-msgid "Basic Settings"
-msgstr "基础设置"
+msgid "Are you sure Enalbe Internetaccess?"
+msgstr "确定要启用外网访问吗？"
+
+msgid "Are you sure Disable Internetaccess?"
+msgstr "确定要禁用外网访问吗？"
+
+msgid "Config dir path"
+msgstr "配置文件夹路径"
+
+msgid "The path to store the config file"
+msgstr "存储 Lucky 配置文件的目录路径"
+
+msgid "get latest version"
+msgstr "获取最新版本"
+
+msgid "portValueError"
+msgstr "端口值无效"
