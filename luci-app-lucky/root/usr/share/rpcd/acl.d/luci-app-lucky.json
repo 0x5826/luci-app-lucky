@@ -5,7 +5,10 @@
 			"ubus": {
 				"luci.lucky": [ "get_status", "get_info" ]
 			},
-			"uci": [ "lucky" ]
+			"uci": [ "lucky" ],
+			"file": {
+				"/etc/init.d/lucky": [ "exec" ]
+			}
 		},
 		"write": {
 			"ubus": {
