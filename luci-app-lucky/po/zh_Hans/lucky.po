@@ -38,10 +38,10 @@ msgid "Collecting data..."
 msgstr "正在收集数据..."
 
 msgid "The Lucky service is running."
-msgstr "Lucky 服务正在运行。"
+msgstr "运行中"
 
 msgid "The Lucky service is not running."
-msgstr "Lucky 服务未运行。"
+msgstr "未运行"
 
 msgid "Not installed"
 msgstr "未安装"
