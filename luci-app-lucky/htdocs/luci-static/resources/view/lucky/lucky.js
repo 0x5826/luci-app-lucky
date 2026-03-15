@@ -41,24 +41,22 @@ var callService = rpc.declare({
 
 return view.extend({
     load: function() {
-        return Promise.all([
-            uci.load('lucky'),
-            callGetInfo()
-        ]);
+        return uci.load('lucky');
     },
 
     render: function(data) {
-        var info = data[1] || {};
         var m, s;
 
         var style = E('style', {}, [
             '.lucky-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }',
             '.lucky-table tr { border: none !important; }',
             '.lucky-table td { border: none !important; padding: 8px 4px !important; vertical-align: middle; }',
-            '.lucky-table td:first-child { width: 33%; font-weight: bold; color: #333; }',
+            '.lucky-table td:first-child { width: 33%; font-weight: bold; }',
             '.cbi-section legend { margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #eee; width: 100%; padding-bottom: 5px; }',
             '#_luckyLogView { width: 100%; height: 450px; background: #f4f4f4; color: #333; padding: 10px; border: 1px solid #ccc; border-radius: 3px; font-family: monospace; font-size: 12px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 10px; }',
-            '.cbi-tabmenu { margin-bottom: 15px; }'
+            '.cbi-tabmenu { margin-bottom: 15px; }',
+            '.lucky-loading { color: var(--cbi-text, #333); opacity: 0.7; font-style: italic; }',
+            '.lucky-loading::after { content: "..."; }'
         ]);
         document.head.appendChild(style);
 
@@ -70,9 +68,9 @@ return view.extend({
 
         s.render = L.bind(function(view, section_id) {
             var container = E('div');
-            
+
             var activeTab = 'settings';
-            
+
             var tabMenu = E('ul', { class: 'cbi-tabmenu' }, [
                 E('li', { class: 'cbi-tab', 'data-tab': 'settings' }, E('a', {
                     click: function(ev) { switchTab(ev, 'settings'); }
@@ -93,43 +91,43 @@ return view.extend({
                 if (tab === 'logs') {
                     var logView = container.querySelector('#_luckyLogView');
                     logView.scrollTop = logView.scrollHeight;
-                    updatePageData(false, true);
+                    fetchLog();
                 }
                 ev.preventDefault();
             }
 
             var settingsPane = E('div', { id: '_luckySettingsPane' });
-            
+
             var statusSection = E('fieldset', {class: 'cbi-section'}, [
                 E('legend', {}, _('Service Control')),
                 E('table', {class: 'lucky-table'}, [
                     E('tr', {class: 'tr'}, [
                         E('td', {class: 'td left'}, _('Lucky Status')),
-                        E('td', {class: 'td left', id: '_luckyStatus'}, _('Collecting data...'))
+                        E('td', {class: 'td left', id: '_luckyStatus'}, E('span', {class: 'lucky-loading'}, _('Loading')))
                     ])
                 ])
             ]);
             settingsPane.appendChild(statusSection);
 
             var table1 = E('table', {class: 'lucky-table'}, [
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Arch')), E('td', {class: 'td left', id: '_luckyArch'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Compilation Time')), E('td', {class: 'td left', id: '_luckyCompilationTime'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Version')), E('td', {class: 'td left', id: '_luckyVersion'}, _('Collecting data...')) ])
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Arch')), E('td', {class: 'td left', id: '_luckyArch'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Compilation Time')), E('td', {class: 'td left', id: '_luckyCompilationTime'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Version')), E('td', {class: 'td left', id: '_luckyVersion'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ])
             ]);
             settingsPane.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Main Program Information')), table1 ]));
 
             var table2 = E('table', {class: 'lucky-table'}, [
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Panel')), E('td', {class: 'td left', id: '_luckyAdminOpen'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Panel Login Info')), E('td', {class: 'td left', id: '_luckyLoginInfo'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Admin Http Port')), E('td', {class: 'td left', id: '_luckyHttpPort'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Safe URL')), E('td', {class: 'td left', id: '_luckySafeURL'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Allow Internet access')), E('td', {class: 'td left', id: '_luckyAllowInternetaccess'}, _('Collecting data...')) ])
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Panel')), E('td', {class: 'td left', id: '_luckyAdminOpen'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Panel Login Info')), E('td', {class: 'td left', id: '_luckyLoginInfo'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Admin Http Port')), E('td', {class: 'td left', id: '_luckyHttpPort'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Safe URL')), E('td', {class: 'td left', id: '_luckySafeURL'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Allow Internet access')), E('td', {class: 'td left', id: '_luckyAllowInternetaccess'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ])
             ]);
             settingsPane.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Admin Panel Information')), table2 ]));
 
             var table3 = E('table', {class: 'lucky-table'}, [
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Config dir path')), E('td', {class: 'td left', id: '_luckyConfigDir'}, _('Collecting data...')) ])
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Config dir path')), E('td', {class: 'td left', id: '_luckyConfigDir'}, E('span', {class: 'lucky-loading'}, _('Loading'))) ])
             ]);
             settingsPane.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Basic Settings')), table3 ]));
 
@@ -138,7 +136,7 @@ return view.extend({
             var logsPane = E('div', { id: '_luckyLogsPane', style: 'display:none' }, [
                 E('fieldset', {class: 'cbi-section'}, [
                     E('legend', {}, _('Running Logs')),
-                    E('div', {id: '_luckyLogView'}, _('Fetching logs...'))
+                    E('div', {id: '_luckyLogView'}, E('span', {class: 'lucky-loading'}, _('Loading')))
                 ])
             ]);
             container.appendChild(logsPane);
@@ -147,49 +145,72 @@ return view.extend({
             var adminHttpURL = "";
             var isUpdating = false;
 
-            function updatePageData(forceRefreshInfo, fetchLog) {
-                if (isUpdating) return Promise.resolve();
-
-                var promises = [callGetStatus()];
-
-                if (fetchLog) {
-                    promises.push(callGetLog());
-                }
-
-                if (forceRefreshInfo) {
-                    promises.push(callGetInfo());
-                }
-
-                return Promise.all(promises).then(function(results) {
-                    var statusData = results[0];
-                    var logData = fetchLog ? results[1] : null;
-                    var infoData = forceRefreshInfo ? results[results.length - 1] : null;
-
-                    if (infoData) {
-                        flushLuckyInfo(infoData);
-                    }
-
+            function fetchStatus() {
+                return callGetStatus().then(function(statusData) {
                     if (statusData && typeof(statusData.running) != 'undefined') {
                         flushLuckyStatus(statusData.running);
-                    }
-
-                    if (logData) {
-                        var logView = container.querySelector('#_luckyLogView');
-                        if (logData.log) {
-                            var isAtBottom = logView.scrollHeight - logView.clientHeight <= logView.scrollTop + 1;
-                            dom.content(logView, logData.log);
-                            if (isAtBottom) logView.scrollTop = logView.scrollHeight;
-                        } else if (logData.log === "") {
-                            dom.content(logView, _('No log available.'));
-                        }
                     }
                 });
             }
 
+            function fetchInfo() {
+                return callGetInfo().then(function(infoData) {
+                    if (infoData) {
+                        flushLuckyInfo(infoData);
+                    }
+                });
+            }
+
+            function fetchLog() {
+                return callGetLog().then(function(logData) {
+                    var logView = container.querySelector('#_luckyLogView');
+                    if (logData && logData.log) {
+                        var isAtBottom = logView.scrollHeight - logView.clientHeight <= logView.scrollTop + 1;
+                        dom.content(logView, logData.log);
+                        if (isAtBottom) logView.scrollTop = logView.scrollHeight;
+                    } else if (logData && logData.log === "") {
+                        dom.content(logView, _('No log available.'));
+                    }
+                });
+            }
+
+            function fetchConfigDir() {
+                var configPath = uci.get('lucky', '@lucky[0]', 'configdir') || '/etc/config/lucky.daji';
+                dom.content(container.querySelector('#_luckyConfigDir'), [
+                    E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:60%', value: configPath}),
+                    '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
+                    E('input', {
+                        type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
+                        click: function() {
+                            var newDir = prompt(_('Config dir path'), configPath);
+                            if (!newDir) return;
+                            handleUpdate('configdir', newDir);
+                        }
+                    })
+                ]);
+            }
+
+            function loadAllData() {
+                fetchStatus();
+                fetchInfo();
+                fetchConfigDir();
+            }
+
+            loadAllData();
+
+            poll.add(function() {
+                if (!isUpdating) {
+                    fetchStatus();
+                    if (activeTab === 'logs') {
+                        fetchLog();
+                    }
+                }
+            }, 5);
+
             function flushLuckyStatus(status) {
                 var luckyStatus = container.querySelector('#_luckyStatus');
                 var luckyAdminOpen = container.querySelector('#_luckyAdminOpen');
-                
+
                 var btnStart = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-apply', value: _('Start'),
                     click: function() { handleServiceAction('start'); }
@@ -329,7 +350,7 @@ return view.extend({
                         dom.content(container.querySelector('#_luckyAllowInternetaccess'), notInst.cloneNode(true));
                         dom.content(container.querySelector('#_luckySafeURL'), notInst.cloneNode(true));
                         dom.content(container.querySelector('#_luckyConfigDir'), notInst.cloneNode(true));
-                        
+
                         var verNode = container.querySelector('#_luckyVersion');
                         dom.content(verNode, [
                             notInst.cloneNode(true),
@@ -344,7 +365,7 @@ return view.extend({
 
                     luckyInstalled = true;
                     dom.content(container.querySelector('#_luckyInstallStatus'), E('b', {style: 'color:green'}, _('Installed')));
-                    
+
                     var luckyInfo = {};
                     try { luckyInfo = JSON.parse(infoData.luckyInfo); } catch(e) {}
 
@@ -433,26 +454,8 @@ return view.extend({
                             })
                         ]);
                     }
-
-                    var configPath = uci.get('lucky', '@lucky[0]', 'configdir') || '/etc/config/lucky.daji';
-                    dom.content(container.querySelector('#_luckyConfigDir'), [
-                        E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:60%', value: configPath}),
-                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
-                        E('input', {
-                            type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
-                            click: function() {
-                                var newDir = prompt(_('Config dir path'), configPath);
-                                if (!newDir) return;
-                                handleUpdate('configdir', newDir);
-                            }
-                        })
-                    ]);
                 }
             }
-
-            flushLuckyInfo(info);
-
-            poll.add(updatePageData, 5);
 
             return container;
         }, this);

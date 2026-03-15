@@ -14,7 +14,10 @@
 			"ubus": {
 				"luci.lucky": [ "set_config", "service" ]
 			},
-			"uci": [ "lucky" ]
+			"uci": [ "lucky" ],
+			"file": {
+				"/tmp/lucky_info_cache": [ "write" ]
+			}
 		}
 	}
 }
