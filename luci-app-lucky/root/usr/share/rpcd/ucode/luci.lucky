@@ -1,6 +1,6 @@
 #!/usr/bin/ucode
 'use strict';
-import { popen, readfile } from 'fs';
+import { popen, readfile, writefile } from 'fs';
 import { cursor } from 'uci';
 
 function trim(s) {
@@ -18,6 +18,45 @@ function get_configdir() {
     c.load('lucky');
     let dir = c.get('lucky', '@lucky[0]', 'configdir');
     return dir ? trim(dir) : '';
+}
+
+const CACHE_FILE = '/tmp/lucky_info_cache';
+
+function get_cache() {
+    try {
+        let content = readfile(CACHE_FILE);
+        if (content) {
+            let cache = json(content);
+            if (cache && cache.pid && cache.data) {
+                let currentPid = trim(readfile('/var/run/lucky.pid'));
+                if (!currentPid) {
+                    let fd = popen("pidof lucky");
+                    currentPid = fd ? trim(fd.read('all')) : "";
+                    if (fd) fd.close();
+                }
+                if (currentPid && currentPid == cache.pid) {
+                    return cache.data;
+                }
+            }
+        }
+    } catch(err) {}
+    return null;
+}
+
+function set_cache(data) {
+    try {
+        let pid = trim(readfile('/var/run/lucky.pid'));
+        if (!pid) {
+            let fd = popen("pidof lucky");
+            pid = fd ? trim(fd.read('all')) : "";
+            if (fd) fd.close();
+        }
+        let cache = {
+            pid: pid,
+            data: data
+        };
+        writefile(CACHE_FILE, json(cache));
+    } catch(err) {}
 }
 
 const methods = {
@@ -48,14 +87,15 @@ const methods = {
         call: function() {
             let e = {};
             let configPath = get_configdir();
-            let fd = popen(configPath ? `/usr/bin/lucky -info -cd ${shellquote(configPath)}` : "/usr/bin/lucky -info");
-            if (fd) {
-                e.luckyInfo = trim(fd.read('all'));
-                fd.close();
+
+            let cached = get_cache();
+            if (cached) {
+                e.luckyInfo = cached.luckyInfo;
+                e.luckyArch = cached.luckyArch;
             }
 
             let cmd = configPath ? `/usr/bin/lucky -baseConfInfo -cd ${shellquote(configPath)}` : `/usr/bin/lucky -baseConfInfo`;
-            fd = popen(cmd);
+            let fd = popen(cmd);
             if (fd) {
                 let confStr = trim(fd.read('all'));
                 fd.close();
@@ -69,11 +109,24 @@ const methods = {
                 }
             }
 
-            fd = popen("/usr/bin/luckyarch");
-            if (fd) {
-                e.luckyArch = trim(fd.read('all'));
-                fd.close();
+            if (!cached || !e.luckyInfo || !e.luckyArch) {
+                let fd = popen(configPath ? `/usr/bin/lucky -info -cd ${shellquote(configPath)}` : "/usr/bin/lucky -info");
+                if (fd) {
+                    e.luckyInfo = trim(fd.read('all'));
+                    fd.close();
+                }
+
+                fd = popen("/usr/bin/luckyarch");
+                if (fd) {
+                    e.luckyArch = trim(fd.read('all'));
+                    fd.close();
+                }
+
+                if (e.luckyInfo || e.luckyArch) {
+                    set_cache({ luckyInfo: e.luckyInfo, luckyArch: e.luckyArch });
+                }
             }
+
             return e;
         }
     },

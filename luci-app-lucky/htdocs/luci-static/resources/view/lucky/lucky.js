@@ -93,6 +93,7 @@ return view.extend({
                 if (tab === 'logs') {
                     var logView = container.querySelector('#_luckyLogView');
                     logView.scrollTop = logView.scrollHeight;
+                    updatePageData(false, true);
                 }
                 ev.preventDefault();
             }
@@ -146,10 +147,14 @@ return view.extend({
             var adminHttpURL = "";
             var isUpdating = false;
 
-            function updatePageData(forceRefreshInfo) {
+            function updatePageData(forceRefreshInfo, fetchLog) {
                 if (isUpdating) return Promise.resolve();
 
-                var promises = [callGetStatus(), callGetLog()];
+                var promises = [callGetStatus()];
+
+                if (fetchLog) {
+                    promises.push(callGetLog());
+                }
 
                 if (forceRefreshInfo) {
                     promises.push(callGetInfo());
@@ -157,10 +162,11 @@ return view.extend({
 
                 return Promise.all(promises).then(function(results) {
                     var statusData = results[0];
-                    var logData = results[1];
+                    var logData = fetchLog ? results[1] : null;
+                    var infoData = forceRefreshInfo ? results[results.length - 1] : null;
 
-                    if (forceRefreshInfo && results[2]) {
-                        flushLuckyInfo(results[2]);
+                    if (infoData) {
+                        flushLuckyInfo(infoData);
                     }
 
                     if (statusData && typeof(statusData.running) != 'undefined') {
