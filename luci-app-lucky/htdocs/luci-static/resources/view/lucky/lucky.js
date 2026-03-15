@@ -93,49 +93,54 @@ return view.extend({
                 var luckyAdminOpen = container.querySelector('#_luckyAdminOpen');
                 var luckyAdminLinkNode = container.querySelector('#_luckyAdminLink');
                 
+                var btnStart = E('input', {
+                    type: 'button', class: 'btn cbi-button cbi-button-apply', value: _('Start'),
+                    disabled: status,
+                    click: function(ev) {
+                        ev.target.disabled = true;
+                        callService('start').then(function() { setTimeout(function() { location.reload(); }, 1500); });
+                    }
+                });
+
+                var btnStop = E('input', {
+                    type: 'button', class: 'btn cbi-button cbi-button-reset', value: _('Stop'),
+                    disabled: !status,
+                    click: function(ev) {
+                        ev.target.disabled = true;
+                        callService('stop').then(function() { setTimeout(function() { location.reload(); }, 1500); });
+                    }
+                });
+
+                var btnRestart = E('input', {
+                    type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Restart'),
+                    disabled: !status,
+                    click: function(ev) {
+                        ev.target.disabled = true;
+                        callService('restart').then(function() { setTimeout(function() { location.reload(); }, 1500); });
+                    }
+                });
+
                 if (status) {
-                    luckyInstalled = true; // If it's running, it must be installed
+                    luckyInstalled = true;
                     dom.content(luckyStatus, [
                         E('b', {style: 'color:green'}, _('The Lucky service is running.')),
-                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
-                        E('input', {
-                            type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('are you sure stop lucky service?').replace('?', ''),
-                            click: function(ev) {
-                                if (confirm(_('are you sure stop lucky service?'))) {
-                                    ev.target.disabled = true;
-                                    ev.target.value = _('Processing...');
-                                    callService('stop').then(function() {
-                                        setTimeout(function() { location.reload(); }, 1500);
-                                    });
-                                }
-                            }
-                        })
+                        '\u00a0\u00a0', btnStart, '\u00a0', btnStop, '\u00a0', btnRestart
                     ]);
-                    dom.content(luckyAdminOpen, E('a', {href: adminHttpURL, target: '_blank'}, adminHttpURL));
+                    dom.content(luckyAdminOpen, E('a', {href: adminHttpURL, target: '_blank', style: 'font-weight:bold; color:blue;'}, adminHttpURL));
                     dom.content(luckyAdminLinkNode, E('b', {}, E('a', {href: adminHttpURL, target: '_blank'}, adminHttpURL)));
                 } else {
                     if (luckyInstalled) {
                         dom.content(luckyStatus, [
                             E('b', {style: 'color:red'}, _('The Lucky service is not running.')),
-                            '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
-                            E('input', {
-                                type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('are you sure start lucky service?').replace('?', ''),
-                                click: function(ev) {
-                                    if (confirm(_('are you sure start lucky service?'))) {
-                                        ev.target.disabled = true;
-                                        ev.target.value = _('Processing...');
-                                        callService('start').then(function() {
-                                            setTimeout(function() { location.reload(); }, 1500);
-                                        });
-                                    }
-                                }
-                            })
+                            '\u00a0\u00a0', btnStart, '\u00a0', btnStop, '\u00a0', btnRestart
                         ]);
+                        dom.content(luckyAdminOpen, E('b', {style: 'color:red'}, _('Service not running, Admin Panel is unavailable')));
+                        dom.content(luckyAdminLinkNode, E('b', {style: 'color:red'}, _('Please start the service first to access the admin panel')));
                     } else {
                         dom.content(luckyStatus, E('b', {style: 'color:red'}, _('Not installed')));
+                        dom.content(luckyAdminOpen, '');
+                        dom.content(luckyAdminLinkNode, '');
                     }
-                    dom.content(luckyAdminOpen, '');
-                    dom.content(luckyAdminLinkNode, '');
                 }
             }
 
