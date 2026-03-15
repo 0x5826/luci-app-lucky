@@ -53,6 +53,7 @@ lucky_run(){
     procd_set_param command $PROG 
     procd_append_param command -cd "$CONFDIR" 
     procd_set_param respawn
+    procd_set_param stdout 1
     procd_set_param stderr 1
     procd_close_instance
 
@@ -66,16 +67,6 @@ lucky_run(){
 
 start_service() {
   lucky_run
-}
-
-restart_service() {
-  stop_service
-  start_service
-}
-
-stop_service() {
-  pgrep -f $PROG | xargs kill -9 >/dev/null 2>&1
-  log_output "lucky is stop."
 }
 
 service_triggers() {
