@@ -2,7 +2,6 @@
 'use strict';
 import { popen, readfile } from 'fs';
 import { cursor } from 'uci';
-import { system } from 'system';
 
 function trim(s) {
     if (s) return replace(s, /^\s+|\s+$/g, '');
