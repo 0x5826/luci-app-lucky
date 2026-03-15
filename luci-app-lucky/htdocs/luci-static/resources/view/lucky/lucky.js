@@ -88,6 +88,18 @@ return view.extend({
             var adminHttpURL = "";
             var luckyPreState = false;
 
+            function updatePageData() {
+                return callGetStatus().then(function(data) {
+                    if (data && typeof(data.running) != 'undefined') {
+                        luckyPreState = data.running;
+                        flushLuckyStatus(data.running);
+                        return callGetInfo().then(function(infoData) {
+                            flushLuckyInfo(infoData);
+                        });
+                    }
+                });
+            }
+
             function flushLuckyStatus(status) {
                 var luckyStatus = container.querySelector('#_luckyStatus');
                 var luckyAdminOpen = container.querySelector('#_luckyAdminOpen');
@@ -97,7 +109,7 @@ return view.extend({
                     type: 'button', class: 'btn cbi-button cbi-button-apply', value: _('Start'),
                     click: function(ev) {
                         ev.target.disabled = true;
-                        callService('start').then(function() { setTimeout(function() { location.reload(); }, 1500); });
+                        callService('start').then(function() { setTimeout(updatePageData, 1000); });
                     }
                 });
 
@@ -105,7 +117,7 @@ return view.extend({
                     type: 'button', class: 'btn cbi-button cbi-button-reset', value: _('Stop'),
                     click: function(ev) {
                         ev.target.disabled = true;
-                        callService('stop').then(function() { setTimeout(function() { location.reload(); }, 1500); });
+                        callService('stop').then(function() { setTimeout(updatePageData, 1000); });
                     }
                 });
 
@@ -113,7 +125,7 @@ return view.extend({
                     type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Restart'),
                     click: function(ev) {
                         ev.target.disabled = true;
-                        callService('restart').then(function() { setTimeout(function() { location.reload(); }, 1500); });
+                        callService('restart').then(function() { setTimeout(updatePageData, 1000); });
                     }
                 });
 
@@ -208,8 +220,7 @@ return view.extend({
                                 if (confirm(_('Reset 666 as admin account and password?'))) {
                                     callSetConfig('reset_auth_info', '').then(function(res) {
                                         if (res && res.ret == 0) {
-                                            alert(_('update success'));
-                                            setTimeout(function() { location.reload(); }, 2000);
+                                            updatePageData();
                                         } else alert(_('update failed'));
                                     });
                                 }
@@ -230,8 +241,7 @@ return view.extend({
                                 if (np <= 0 || np > 65535) { alert(_('portValueError')); return; }
                                 callSetConfig('admin_http_port', newPort).then(function(res) {
                                     if (res && res.ret == 0) {
-                                        alert(_('update success'));
-                                        callService('restart').then(function(){ setTimeout(function() { location.reload(); }, 2000); });
+                                        callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
                                     } else alert(_('update failed'));
                                 });
                             }
@@ -248,8 +258,7 @@ return view.extend({
                                 if (newSafeURL == null) return;
                                 callSetConfig('admin_safe_url', newSafeURL).then(function(res) {
                                     if (res && res.ret == 0) {
-                                        alert(_('update success'));
-                                        callService('restart').then(function(){ setTimeout(function() { location.reload(); }, 2000); });
+                                        callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
                                     } else alert(_('update failed'));
                                 });
                             }
@@ -266,8 +275,7 @@ return view.extend({
                                     if (confirm(_('Are you sure Disable Internetaccess?'))) {
                                         callSetConfig('switch_Internetaccess', 'false').then(function(res) {
                                             if (res && res.ret == 0) {
-                                                alert(_('update success'));
-                                                callService('restart').then(function(){ setTimeout(function() { location.reload(); }, 2000); });
+                                                callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
                                             } else alert(_('update failed'));
                                         });
                                     }
@@ -284,8 +292,7 @@ return view.extend({
                                     if (confirm(_('Are you sure Enalbe Internetaccess?'))) {
                                         callSetConfig('switch_Internetaccess', 'true').then(function(res) {
                                             if (res && res.ret == 0) {
-                                                alert(_('update success'));
-                                                callService('restart').then(function(){ setTimeout(function() { location.reload(); }, 2000); });
+                                                callService('restart').then(function(){ setTimeout(updatePageData, 1000); });
                                             } else alert(_('update failed'));
                                         });
                                     }
@@ -298,17 +305,7 @@ return view.extend({
 
             flushLuckyInfo(info);
 
-            poll.add(function() {
-                return callGetStatus().then(function(data) {
-                    if (data && typeof(data.running) != 'undefined') {
-                        if (luckyPreState != data.running) {
-                            callGetInfo().then(function(newInfo) { flushLuckyInfo(newInfo); });
-                        }
-                        luckyPreState = data.running;
-                        flushLuckyStatus(data.running);
-                    }
-                });
-            }, 3);
+            poll.add(updatePageData, 3);
 
             return container;
         }, this);
