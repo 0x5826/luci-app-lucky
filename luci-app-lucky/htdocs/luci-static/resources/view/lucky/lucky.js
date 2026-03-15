@@ -94,6 +94,7 @@ return view.extend({
                 var luckyAdminLinkNode = container.querySelector('#_luckyAdminLink');
                 
                 if (status) {
+                    luckyInstalled = true; // If it's running, it must be installed
                     dom.content(luckyStatus, [
                         E('b', {style: 'color:green'}, _('The Lucky service is running.')),
                         '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
