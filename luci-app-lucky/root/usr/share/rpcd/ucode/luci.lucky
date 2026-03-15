@@ -78,29 +78,35 @@ const methods = {
     },
     get_info: {
         call: function() {
-            // 先尝试从缓存读取
-            let cached = get_cache();
-            if (cached) {
-                return cached;
-            }
-
             let e = {};
             let configPath = get_configdir();
 
-            let fd = popen(configPath ? `/usr/bin/lucky -info -cd ${shellquote(configPath)}` : "/usr/bin/lucky -info");
-            if (fd) {
-                e.luckyInfo = trim(fd.read('all'));
-                fd.close();
+            // 尝试从缓存读取主程序信息
+            let cached = get_cache();
+            if (cached) {
+                e.luckyInfo = cached.luckyInfo;
+                e.luckyArch = cached.luckyArch;
+            } else {
+                // 缓存未命中，执行命令获取主程序信息
+                let fd = popen(configPath ? `/usr/bin/lucky -info -cd ${shellquote(configPath)}` : "/usr/bin/lucky -info");
+                if (fd) {
+                    e.luckyInfo = trim(fd.read('all'));
+                    fd.close();
+                }
+
+                fd = popen("/usr/bin/luckyarch");
+                if (fd) {
+                    e.luckyArch = trim(fd.read('all'));
+                    fd.close();
+                }
+
+                // 只缓存主程序信息
+                set_cache({ luckyInfo: e.luckyInfo, luckyArch: e.luckyArch });
             }
 
-            fd = popen("/usr/bin/luckyarch");
-            if (fd) {
-                e.luckyArch = trim(fd.read('all'));
-                fd.close();
-            }
-
+            // LuckyBaseConfigure 每次实时获取
             let cmd = configPath ? `/usr/bin/lucky -baseConfInfo -cd ${shellquote(configPath)}` : `/usr/bin/lucky -baseConfInfo`;
-            fd = popen(cmd);
+            let fd = popen(cmd);
             if (fd) {
                 let confStr = trim(fd.read('all'));
                 fd.close();
@@ -114,8 +120,6 @@ const methods = {
                 }
             }
 
-            // 写入缓存
-            set_cache(e);
             return e;
         }
     },
