@@ -44,6 +44,16 @@ return view.extend({
         var info = data[1] || {};
         var m, s, o;
 
+        // Inject custom CSS to remove horizontal lines and unify padding
+        var style = E('style', {}, [
+            '.lucky-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }',
+            '.lucky-table tr { border: none !important; }',
+            '.lucky-table td { border: none !important; padding: 8px 4px !important; vertical-align: middle; }',
+            '.lucky-table td:first-child { width: 33%; font-weight: bold; color: #333; }',
+            '.cbi-section legend { margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #eee; width: 100%; padding-bottom: 5px; }'
+        ]);
+        document.head.appendChild(style);
+
         m = new form.Map('lucky', _('Lucky'), _('IPv4/IPv6 port forwarding, DDNS, HTTP/HTTPS reverse proxy, WOL and more.'));
 
         s = m.section(form.TypedSection, 'lucky');
@@ -55,31 +65,36 @@ return view.extend({
             
             var statusSection = E('fieldset', {class: 'cbi-section'}, [
                 E('legend', {}, _('Service Control')),
-                E('table', {class: 'table cbi-section-table'}, [
+                E('table', {class: 'lucky-table'}, [
                     E('tr', {class: 'tr'}, [
-                        E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Lucky Status')),
+                        E('td', {class: 'td left'}, _('Lucky Status')),
                         E('td', {class: 'td left', id: '_luckyStatus'}, _('Collecting data...'))
                     ])
                 ])
             ]);
             container.appendChild(statusSection);
 
-            var table1 = E('table', {class: 'table cbi-section-table'}, [
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Arch')), E('td', {class: 'td left', id: '_luckyArch'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Compilation Time')), E('td', {class: 'td left', id: '_luckyCompilationTime'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Version')), E('td', {class: 'td left', id: '_luckyVersion'}, _('Collecting data...')) ])
+            var table1 = E('table', {class: 'lucky-table'}, [
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Installation Status')), E('td', {class: 'td left', id: '_luckyInstallStatus'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Arch')), E('td', {class: 'td left', id: '_luckyArch'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Compilation Time')), E('td', {class: 'td left', id: '_luckyCompilationTime'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Version')), E('td', {class: 'td left', id: '_luckyVersion'}, _('Collecting data...')) ])
             ]);
             container.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Main Program Information')), table1 ]));
 
-            var table2 = E('table', {class: 'table cbi-section-table'}, [
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold; width: 33%;'}, _('Admin Panel')), E('td', {class: 'td left', id: '_luckyAdminOpen'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Admin Panel Login Info')), E('td', {class: 'td left', id: '_luckyLoginInfo'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Lucky Admin Http Port')), E('td', {class: 'td left', id: '_luckyHttpPort'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Admin Safe URL')), E('td', {class: 'td left', id: '_luckySafeURL'}, _('Collecting data...')) ]),
-                E('tr', {class: 'tr'}, [ E('td', {class: 'td left', style: 'font-weight: bold;'}, _('Allow Internet access')), E('td', {class: 'td left', id: '_luckyAllowInternetaccess'}, _('Collecting data...')) ])
+            var table2 = E('table', {class: 'lucky-table'}, [
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Panel')), E('td', {class: 'td left', id: '_luckyAdminOpen'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Panel Login Info')), E('td', {class: 'td left', id: '_luckyLoginInfo'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Lucky Admin Http Port')), E('td', {class: 'td left', id: '_luckyHttpPort'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Admin Safe URL')), E('td', {class: 'td left', id: '_luckySafeURL'}, _('Collecting data...')) ]),
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Allow Internet access')), E('td', {class: 'td left', id: '_luckyAllowInternetaccess'}, _('Collecting data...')) ])
             ]);
             container.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Admin Panel Information')), table2 ]));
+
+            var table3 = E('table', {class: 'lucky-table'}, [
+                E('tr', {class: 'tr'}, [ E('td', {class: 'td left'}, _('Config dir path')), E('td', {class: 'td left', id: '_luckyConfigDir'}, _('Collecting data...')) ])
+            ]);
+            container.appendChild(E('fieldset', {class: 'cbi-section'}, [ E('legend', {}, _('Basic Settings')), table3 ]));
 
             var luckyInstalled = false;
             var adminHttpURL = "";
@@ -168,6 +183,7 @@ return view.extend({
                         dom.content(container.querySelector('#_luckyAdminOpen'), notInst.cloneNode(true));
                         dom.content(container.querySelector('#_luckyAllowInternetaccess'), notInst.cloneNode(true));
                         dom.content(container.querySelector('#_luckySafeURL'), notInst.cloneNode(true));
+                        dom.content(container.querySelector('#_luckyConfigDir'), notInst.cloneNode(true));
                         
                         var verNode = container.querySelector('#_luckyVersion');
                         dom.content(verNode, [
@@ -178,7 +194,6 @@ return view.extend({
                                 click: function() { window.open("https://release.66666.host/"); }
                             })
                         ]);
-                        dom.content(container.querySelector('#_luckyAdminLink'), '');
                         return;
                     }
 
@@ -223,7 +238,7 @@ return view.extend({
 
                     dom.content(container.querySelector('#_luckyHttpPort'), [
                         E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:30%', value: baseConf.AdminWebListenPort || "16601"}),
-                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
+                        '\u00a0\u00a0',
                         E('input', {
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
                             click: function() {
@@ -243,7 +258,7 @@ return view.extend({
 
                     dom.content(container.querySelector('#_luckySafeURL'), [
                         E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:30%', value: baseConf.SafeURL || ""}),
-                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
+                        '\u00a0\u00a0',
                         E('input', {
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
                             click: function() {
@@ -261,7 +276,7 @@ return view.extend({
                     if (baseConf.AllowInternetaccess) {
                         dom.content(container.querySelector('#_luckyAllowInternetaccess'), [
                             E('b', {style: 'color:green'}, _('allow')),
-                            '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
+                            '\u00a0\u00a0',
                             E('input', {
                                 type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('not allow'),
                                 click: function() {
@@ -278,7 +293,7 @@ return view.extend({
                     } else {
                         dom.content(container.querySelector('#_luckyAllowInternetaccess'), [
                             E('b', {style: 'color:red'}, _('not allow')),
-                            '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
+                            '\u00a0\u00a0',
                             E('input', {
                                 type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('allow'),
                                 click: function() {
@@ -293,6 +308,25 @@ return view.extend({
                             })
                         ]);
                     }
+
+                    // Render configdir
+                    var configPath = uci.get('lucky', '@lucky[0]', 'configdir') || '/etc/config/lucky.daji';
+                    dom.content(container.querySelector('#_luckyConfigDir'), [
+                        E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:60%', value: configPath}),
+                        '\u00a0\u00a0',
+                        E('input', {
+                            type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
+                            click: function() {
+                                var newDir = prompt(_('Config dir path'), configPath);
+                                if (!newDir) return;
+                                callSetConfig('configdir', newDir).then(function(res) {
+                                    if (res && res.ret == 0) {
+                                        updatePageData();
+                                    } else alert(_('update failed'));
+                                });
+                            }
+                        })
+                    ]);
                 }
             }
 
@@ -303,19 +337,6 @@ return view.extend({
             return container;
         }, this);
 
-        s = m.section(form.TypedSection, 'lucky', _('Basic Settings'));
-        s.anonymous = true;
-        s.addremove = false;
-
-        o = s.option(form.Value, 'configdir', _('Config dir path'), _('The path to store the config file'));
-        o.placeholder = '/etc/config/lucky.daji';
-
         return m.render();
-    },
-
-    handleSaveApply: function(ev, mode) {
-        return this.super('handleSaveApply', [ev, mode]).then(function() {
-            return callService('restart');
-        });
     }
 });
