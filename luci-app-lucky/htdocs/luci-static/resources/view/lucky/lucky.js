@@ -44,7 +44,7 @@ return view.extend({
         var info = data[1] || {};
         var m, s, o;
 
-        m = new form.Map('lucky', _('Lucky'), _('ipv4/ipv6 portforward,ddns,reverseproxy proxy,wake on lan,IOT and more...'));
+        m = new form.Map('lucky', _('Lucky'), _('IPv4/IPv6端口转发,动态域名服务,http/https反向代理，网络唤醒(可通过第三方物联网平台接入各大语音助手实现语音控制开关电脑)'));
 
         s = m.section(form.TypedSection, 'lucky');
         s.anonymous = true;
@@ -53,9 +53,6 @@ return view.extend({
         s.render = L.bind(function(view, section_id) {
             var container = E('div');
             
-            var adminLink = E('p', {id: '_luckyAdminLink', style: 'font-weight: bold; margin-bottom: 10px;'});
-            container.appendChild(E('fieldset', {class: 'cbi-section'}, adminLink));
-
             var statusSection = E('fieldset', {class: 'cbi-section'}, [
                 E('legend', {}, _('Service Control')),
                 E('table', {class: 'table cbi-section-table'}, [
@@ -103,7 +100,6 @@ return view.extend({
             function flushLuckyStatus(status) {
                 var luckyStatus = container.querySelector('#_luckyStatus');
                 var luckyAdminOpen = container.querySelector('#_luckyAdminOpen');
-                var luckyAdminLinkNode = container.querySelector('#_luckyAdminLink');
                 
                 var btnStart = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-apply', value: _('Start'),
@@ -140,7 +136,6 @@ return view.extend({
                         '\u00a0\u00a0', btnStart, '\u00a0', btnStop, '\u00a0', btnRestart
                     ]);
                     dom.content(luckyAdminOpen, E('a', {href: adminHttpURL, target: '_blank', style: 'font-weight:bold; color:blue;'}, adminHttpURL));
-                    dom.content(luckyAdminLinkNode, E('b', {}, E('a', {href: adminHttpURL, target: '_blank'}, adminHttpURL)));
                 } else {
                     if (luckyInstalled) {
                         dom.content(luckyStatus, [
@@ -148,11 +143,9 @@ return view.extend({
                             '\u00a0\u00a0', btnStart, '\u00a0', btnStop, '\u00a0', btnRestart
                         ]);
                         dom.content(luckyAdminOpen, E('span', {style: 'color:grey'}, _('Service not running, Admin Panel is unavailable')));
-                        dom.content(luckyAdminLinkNode, '');
                     } else {
                         dom.content(luckyStatus, E('b', {style: 'color:red'}, _('Not installed')));
                         dom.content(luckyAdminOpen, '');
-                        dom.content(luckyAdminLinkNode, '');
                     }
                 }
             }
