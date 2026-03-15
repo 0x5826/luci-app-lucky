@@ -150,24 +150,33 @@ return view.extend({
             function updatePageData() {
                 if (isUpdating) return;
                 
-                callGetLog().then(function(res) {
-                    var logView = container.querySelector('#_luckyLogView');
-                    if (res && res.log) {
-                        var isAtBottom = logView.scrollHeight - logView.clientHeight <= logView.scrollTop + 1;
-                        dom.content(logView, res.log);
-                        if (isAtBottom) logView.scrollTop = logView.scrollHeight;
-                    } else if (res && res.log === "") {
-                        dom.content(logView, _('No log available.'));
-                    }
-                });
+                return Promise.all([
+                    callGetStatus(),
+                    callGetInfo(),
+                    callGetLog()
+                ]).then(function(results) {
+                    var statusData = results[0];
+                    var infoData = results[1];
+                    var logData = results[2];
 
-                return callGetStatus().then(function(data) {
-                    if (data && typeof(data.running) != 'undefined') {
-                        luckyPreState = data.running;
-                        flushLuckyStatus(data.running);
-                        return callGetInfo().then(function(infoData) {
-                            flushLuckyInfo(infoData);
-                        });
+                    if (statusData && typeof(statusData.running) != 'undefined') {
+                        luckyPreState = statusData.running;
+                        flushLuckyStatus(statusData.running);
+                    }
+
+                    if (infoData) {
+                        flushLuckyInfo(infoData);
+                    }
+
+                    if (logData) {
+                        var logView = container.querySelector('#_luckyLogView');
+                        if (logData.log) {
+                            var isAtBottom = logView.scrollHeight - logView.clientHeight <= logView.scrollTop + 1;
+                            dom.content(logView, logData.log);
+                            if (isAtBottom) logView.scrollTop = logView.scrollHeight;
+                        } else if (logData.log === "") {
+                            dom.content(logView, _('No log available.'));
+                        }
                     }
                 });
             }
@@ -178,26 +187,17 @@ return view.extend({
                 
                 var btnStart = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-apply', value: _('Start'),
-                    click: function(ev) {
-                        ev.target.disabled = true;
-                        callService('start').then(function() { setTimeout(updatePageData, 2000); });
-                    }
+                    click: function() { handleServiceAction('start'); }
                 });
 
                 var btnStop = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-reset', value: _('Stop'),
-                    click: function(ev) {
-                        ev.target.disabled = true;
-                        callService('stop').then(function() { setTimeout(updatePageData, 2000); });
-                    }
+                    click: function() { handleServiceAction('stop'); }
                 });
 
                 var btnRestart = E('input', {
                     type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Restart'),
-                    click: function(ev) {
-                        ev.target.disabled = true;
-                        callService('restart').then(function() { setTimeout(updatePageData, 2000); });
-                    }
+                    click: function() { handleServiceAction('restart'); }
                 });
 
                 btnStart.disabled = status || isUpdating;
@@ -225,6 +225,20 @@ return view.extend({
                 }
             }
 
+            function handleServiceAction(action) {
+                isUpdating = true;
+                ui.showModal(null, [
+                    E('p', { class: 'spinning' }, _('Updating configuration...'))
+                ]);
+                return callService(action).then(function() {
+                    setTimeout(function() {
+                        isUpdating = false;
+                        ui.hideModal();
+                        updatePageData();
+                    }, 1000);
+                });
+            }
+
             function handleUpdate(key, value) {
                 isUpdating = true;
                 ui.showModal(null, [
@@ -238,7 +252,7 @@ return view.extend({
                                 isUpdating = false;
                                 ui.hideModal();
                                 updatePageData();
-                            }, 2000);
+                            }, 1000);
                         });
                     } else {
                         isUpdating = false;
@@ -304,7 +318,7 @@ return view.extend({
 
                     dom.content(container.querySelector('#_luckyLoginInfo'), [
                         E('b', {style: 'color:green'}, _('DefaultAuth') + ":666"),
-                        '\u00a0\u00a0',
+                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                         E('input', {
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Reset Account and Password'),
                             click: function() {
@@ -317,7 +331,7 @@ return view.extend({
 
                     dom.content(container.querySelector('#_luckyHttpPort'), [
                         E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:30%', value: baseConf.AdminWebListenPort || "16601"}),
-                        '\u00a0\u00a0',
+                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                         E('input', {
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
                             click: function() {
@@ -333,7 +347,7 @@ return view.extend({
 
                     dom.content(container.querySelector('#_luckySafeURL'), [
                         E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:30%', value: baseConf.SafeURL || ""}),
-                        '\u00a0\u00a0',
+                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                         E('input', {
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
                             click: function() {
@@ -347,7 +361,7 @@ return view.extend({
                     if (baseConf.AllowInternetaccess) {
                         dom.content(container.querySelector('#_luckyAllowInternetaccess'), [
                             E('b', {style: 'color:green'}, _('allow')),
-                            '\u00a0\u00a0',
+                            '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                             E('input', {
                                 type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('not allow'),
                                 click: function() {
@@ -360,7 +374,7 @@ return view.extend({
                     } else {
                         dom.content(container.querySelector('#_luckyAllowInternetaccess'), [
                             E('b', {style: 'color:red'}, _('not allow')),
-                            '\u00a0\u00a0',
+                            '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                             E('input', {
                                 type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('allow'),
                                 click: function() {
@@ -375,7 +389,7 @@ return view.extend({
                     var configPath = uci.get('lucky', '@lucky[0]', 'configdir') || '/etc/config/lucky.daji';
                     dom.content(container.querySelector('#_luckyConfigDir'), [
                         E('input', {disabled: true, type: 'text', class: 'cbi-input-text', style: 'width:60%', value: configPath}),
-                        '\u00a0\u00a0',
+                        '\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0',
                         E('input', {
                             type: 'button', class: 'btn cbi-button cbi-button-reload', value: _('Change'),
                             click: function() {
