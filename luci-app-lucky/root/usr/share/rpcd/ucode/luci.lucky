@@ -2,103 +2,132 @@
 /*
  * SPDX-License-Identifier: GPL-2.0-only
  *
- * Copyright (C) 2021-2026  sirpdboy  <herboy2008@gmail.com> https://github.com/sirpdboy/luci-app-lucky 
+ * Copyright (C) 2021-2026  dante  <dante@seckv.com> 
  */
 
 'use strict';
 
-import { access, error, lstat, popen, readfile, writefile } from 'fs';
+import { access, popen } from 'fs';
+import { cursor } from 'uci';
+
+const uci = cursor();
 
 /* Kanged from ucode/luci */
 function shellquote(s) {
-	return `'${replace(s, "'", "'\\''")}'`;
+	if (s === null || s === undefined) return "''";
+	return `'${replace(s.toString(), "'", "'\\''")}'`;
 }
 
 function trim(s) {
 	if (!s) return s;
-	return replace(s, /^\s+|\s+$/g, "");
+	return replace(s.toString(), /^\s+|\s+$/g, "");
 }
+
+function get_config_path() {
+	let path = uci.get('lucky', '@lucky[0]', 'configdir');
+	if (!path) {
+		path = '/etc/config/lucky.daji'; // Default value from Lua code's placeholder
+	}
+	return trim(path);
+}
+
 const methods = {
-	set_ConfInfo: {
-		args: { key: 'key', value: 'value' },
-		call: function(req) {
-			if (!access('/usr/bin/lucky'))
-				return { status: 255, error: 'lucky not found' };
-
-			if (!req.args?.key)
-				return { status: 255, error: 'missing key parameter' };
-
-			const key = shellquote(req.args.key);
-			const configPath = '/etc/lucky';
-			let exit_code = 255;
-			
-			if (req.args.value !== null && req.args.value !== undefined) {
-				const value = shellquote(req.args.value);
-				exit_code = system(`/usr/bin/lucky -setconf -key ${key} -value ${value} -cd ${configPath}`);
-			} else {
-				// ���û���ṩvalue��ֻ����key
-				exit_code = system(`/usr/bin/lucky -setconf -key ${key} -cd ${configPath}`);
-			}
-
-			return { status: exit_code };
+	get_status: {
+		call: function() {
+			let running = (system("pgrep -f 'lucky -c' >/dev/null") == 0);
+			return { running: running };
 		}
 	},
 
-	get_baseInfo: {
+	get_info: {
 		call: function() {
-			if (!access('/usr/bin/lucky'))
-				return { ConfInfo: {}, error: 'lucky not found' };
+			let res = {
+				luckyArch: '',
+				luckyInfo: '',
+				LuckyBaseConfigure: null,
+				error: null
+			};
 
-			const configPath = '/etc/lucky';
-			const fd = popen('/usr/bin/lucky -baseConfInfo -cd /etc/lucky');
-			if (fd) {
-				let config = fd.read('all');
-				fd.close();
-				
-				if (!config || length(config) === 0)
-					return { ConfInfo: {}, error: 'empty response' };
-				
-				try {
-					config = json(config);
-					return { ConfInfo: config };
-				} catch(e) {
-					return { ConfInfo: {}, error: 'JSON parse error: ' + e };
-				}
-			} else {
-				return { ConfInfo: {}, error: 'failed to execute lucky command' };
-			}
-		}
-	},
-
-	get_Info: {
-		call: function() {
-			let arch = '';
+			// luckyarch
 			const fd_arch = popen('/usr/bin/luckyarch');
 			if (fd_arch) {
-				arch = trim(fd_arch.read('all'));
+				res.luckyArch = trim(fd_arch.read('all'));
 				fd_arch.close();
 			}
 
-			if (!access('/usr/bin/lucky'))
-				return { Info: {}, Arch: arch, error: 'lucky not found' };
-
-			const fd = popen('/usr/bin/lucky -info -cd /etc/lucky');
-			if (fd) {
-				let config = fd.read('all');
-				fd.close();
-				
-				if (!config || length(config) === 0)
-					return { Info: {}, Arch: arch, error: 'empty response' };
-				
-				try {
-					config = json(config);
-					return { Info: config, Arch: arch };
-				} catch(e) {
-					return { Info: {}, Arch: arch, error: 'JSON parse error: ' + e };
-				}
-			} else {
-				return { Info: {}, Arch: arch, error: 'failed to execute lucky command' };
+			if (!access('/usr/bin/lucky')) {
+				res.error = 'lucky not found';
+				return res;
 			}
+
+			const configPath = get_config_path();
+
+			// lucky -info
+			const fd_info = popen(`/usr/bin/lucky -info -cd ${shellquote(configPath)}`);
+			if (fd_info) {
+				res.luckyInfo = trim(fd_info.read('all'));
+				fd_info.close();
+			}
+
+			// lucky -baseConfInfo
+			const fd_base = popen(`/usr/bin/lucky -baseConfInfo -cd ${shellquote(configPath)}`);
+			if (fd_base) {
+				let baseInfoStr = trim(fd_base.read('all'));
+				fd_base.close();
+				if (baseInfoStr) {
+					try {
+						let baseObj = json(baseInfoStr);
+						if (baseObj && baseObj.BaseConfigure) {
+							res.LuckyBaseConfigure = baseObj.BaseConfigure;
+						}
+					} catch(e) {
+						// Parse error, ignore
+					}
+				}
+			}
+
+			return res;
+		}
+	},
+
+	set_config: {
+		args: { key: 'key', value: 'value' },
+		call: function(req) {
+			if (!access('/usr/bin/lucky'))
+				return { ret: 1, error: 'lucky not found' };
+
+			if (!req.args?.key)
+				return { ret: 1, error: 'missing key parameter' };
+
+			const key = shellquote(req.args.key);
+			const configPath = get_config_path();
+			let exit_code = 1;
+			
+			if (req.args.value !== null && req.args.value !== undefined) {
+				const value = shellquote(req.args.value);
+				exit_code = system(`/usr/bin/lucky -setconf -key ${key} -value ${value} -cd ${shellquote(configPath)}`);
+			} else {
+				exit_code = system(`/usr/bin/lucky -setconf -key ${key} -cd ${shellquote(configPath)}`);
+			}
+
+			return { ret: (exit_code == 0 ? 0 : 1) };
+		}
+	},
+
+	service_action: {
+		args: { action: 'action' },
+		call: function(req) {
+			const action = req.args?.action;
+			if (action === 'start' || action === 'restart') {
+				uci.set('lucky', '@lucky[0]', 'enabled', '1');
+				uci.commit('lucky');
+				system(`/etc/init.d/lucky ${action}`);
+			} else if (action === 'stop') {
+				uci.set('lucky', '@lucky[0]', 'enabled', '0');
+				uci.commit('lucky');
+				system('/etc/init.d/lucky stop');
+			}
+			return { ret: 0 };
 		}
 	}
 };
