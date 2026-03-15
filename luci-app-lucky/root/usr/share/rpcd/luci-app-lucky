@@ -1,0 +1,101 @@
+#!/bin/sh
+
+. /usr/share/libubox/jshn.sh
+
+case "$1" in
+	list)
+		echo '{ "get_status": {}, "get_info": {}, "set_config": { "key": "key", "value": "value" }, "service": { "action": "action" } }'
+	;;
+	call)
+		case "$2" in
+			get_status)
+				if pgrep -f 'lucky -c' >/dev/null; then
+					echo '{ "running": true }'
+				else
+					echo '{ "running": false }'
+				fi
+			;;
+			get_info)
+				json_init
+				
+				LUCKY_INFO=$(/usr/bin/lucky -info 2>/dev/null)
+				json_add_string "luckyInfo" "$LUCKY_INFO"
+				
+				LUCKY_ARCH=$(/usr/bin/luckyarch 2>/dev/null)
+				json_add_string "luckyArch" "$LUCKY_ARCH"
+				
+				CONFIG_PATH=$(uci -q get lucky.@lucky[0].configdir)
+				if [ -n "$CONFIG_PATH" ]; then
+					BASE_CONF=$(/usr/bin/lucky -baseConfInfo -cd "$CONFIG_PATH" 2>/dev/null)
+					if [ -n "$BASE_CONF" ]; then
+						json_add_object "LuckyBaseConfigure"
+						# Parse the JSON from lucky output and add it to our response
+						# Since lucky returns JSON, we might need to handle it carefully or just pass as string
+						# For simplicity, we can just pass the whole thing as a JSON object if jshn can handle it
+						# But jshn is a bit clunky for nested JSON from string.
+						# Let's just return the raw JSON string for luckyInfo and BaseConf and let JS handle it.
+						json_add_string "LuckyBaseConfigureRaw" "$BASE_CONF"
+						json_close_object
+					fi
+				fi
+				
+				json_dump
+			;;
+			set_config)
+				read -r input
+				json_load "$input"
+				json_get_var key "key"
+				json_get_var value "value"
+				
+				CONFIG_PATH=$(uci -q get lucky.@lucky[0].configdir)
+				
+				RET=1
+				case "$key" in
+					admin_http_port)
+						/usr/bin/lucky -setconf -key "AdminWebListenPort" -value "$value" -cd "$CONFIG_PATH" >/dev/null 2>&1
+						RET=$?
+					;;
+					admin_safe_url)
+						/usr/bin/lucky -setconf -key "SetSafeURL" -value "$value" -cd "$CONFIG_PATH" >/dev/null 2>&1
+						RET=$?
+					;;
+					reset_auth_info)
+						/usr/bin/lucky -setconf -key "AdminAccount" -value "666" -cd "$CONFIG_PATH" >/dev/null 2>&1
+						/usr/bin/lucky -setconf -key "AdminPassword" -value "666" -cd "$CONFIG_PATH" >/dev/null 2>&1
+						/etc/init.d/lucky restart >/dev/null 2>&1
+						RET=0
+					;;
+					switch_Internetaccess)
+						/usr/bin/lucky -setconf -key "AllowInternetaccess" -value "$value" -cd "$CONFIG_PATH" >/dev/null 2>&1
+						RET=$?
+					;;
+				esac
+				echo "{ \"ret\": $RET }"
+			;;
+			service)
+				read -r input
+				json_load "$input"
+				json_get_var action "action"
+				
+				case "$action" in
+					restart)
+						uci set lucky.@lucky[0].enabled=1
+						uci commit lucky
+						/etc/init.d/lucky restart >/dev/null 2>&1
+					;;
+					start)
+						uci set lucky.@lucky[0].enabled=1
+						uci commit lucky
+						/etc/init.d/lucky start >/dev/null 2>&1
+					;;
+					stop)
+						uci set lucky.@lucky[0].enabled=0
+						uci commit lucky
+						/etc/init.d/lucky stop >/dev/null 2>&1
+					;;
+				esac
+				echo '{ "result": true }'
+			;;
+		esac
+	;;
+esac

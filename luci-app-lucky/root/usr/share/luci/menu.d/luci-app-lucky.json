@@ -1,0 +1,11 @@
+{
+	"admin/services/lucky": {
+		"title": "Lucky",
+		"action": {
+			"type": "view",
+			"path": "lucky/lucky"
+		},
+		"order": 57,
+		"dependent": true
+	}
+}

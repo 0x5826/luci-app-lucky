@@ -1,0 +1,143 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "Lucky"
+msgstr "Lucky"
+
+msgid "ipv4/ipv6 portforward,ddns,reverseproxy proxy,wake on lan,IOT and more..."
+msgstr "IPv4/IPv6端口转发,动态域名服务,http/https反向代理，网络唤醒(可通过第三方物联网平台接入各大语音助手实现语音控制开关电脑)"
+
+msgid "Status"
+msgstr "运行状态"
+
+msgid "Lucky Status"
+msgstr "Lucky服务状态"
+
+msgid "Admin Panel"
+msgstr "Lucky 后台管理"
+
+msgid "The Lucky service is running."
+msgstr "已启动"
+
+msgid "The Lucky service is not running."
+msgstr "未启动"
+
+msgid "Start"
+msgstr "启动"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Collecting data..."
+msgstr "收集数据..."
+
+msgid "Main Program Information"
+msgstr "主程序信息"
+
+msgid "Installation Status"
+msgstr "安装状态"
+
+msgid "Installed"
+msgstr "已安装"
+
+msgid "Not installed"
+msgstr "没有安装"
+
+msgid "Lucky Arch"
+msgstr "当前环境CPU架构"
+
+msgid "Compilation Time"
+msgstr "编译时间"
+
+msgid "Lucky Version"
+msgstr "版本"
+
+msgid "Get latest version"
+msgstr "查询最新"
+
+msgid "Admin Panel Information"
+msgstr "管理面板信息"
+
+msgid "Admin Panel Login Info"
+msgstr "管理后台登录信息"
+
+msgid "Default: 666"
+msgstr "默认登录账号密码: 666"
+
+msgid "Reset"
+msgstr "重置"
+
+msgid "Admin Port"
+msgstr "Lucky 后台HTTP端口"
+
+msgid "Change"
+msgstr "更改"
+
+msgid "Safe URL Path"
+msgstr "安全入口路径"
+
+msgid "Internet Access"
+msgstr "外网登录后台"
+
+msgid "Allowed"
+msgstr "允许"
+
+msgid "Not allowed"
+msgstr "禁止"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Disable"
+msgstr "禁用"
+
+msgid "Basic Settings"
+msgstr "基础设置"
+
+msgid "Config dir path"
+msgstr "配置文件夹位置"
+
+msgid "The path to store the config file"
+msgstr "存放配置文件的位置"
+
+msgid "Are you sure you want to stop the Lucky service?"
+msgstr "确定要停止Lucky服务?"
+
+msgid "Are you sure you want to start the Lucky service?"
+msgstr "确定要启动Lucky服务?"
+
+msgid "Service %s successfully."
+msgstr "服务 %s 成功。"
+
+msgid "Reset 666 as admin account and password?"
+msgstr "重置账号密码为666?"
+
+msgid "Reset success. Service is restarting..."
+msgstr "重置成功。服务正在重启..."
+
+msgid "Reset failed."
+msgstr "重置失败。"
+
+msgid "New %s"
+msgstr "新 %s"
+
+msgid "Invalid port number."
+msgstr "端口号无效。"
+
+msgid "Update %s success. Service is restarting..."
+msgstr "更新 %s 成功。服务正在重启..."
+
+msgid "Update %s failed."
+msgstr "更新 %s 失败。"
+
+msgid "Are you sure you want to enable Internet access?"
+msgstr "确定要启用外网访问?"
+
+msgid "Are you sure you want to disable Internet access?"
+msgstr "确定要禁用外网访问?"
+
+msgid "Update success. Service is restarting..."
+msgstr "更新成功。服务正在重启..."
+
+msgid "Update failed."
+msgstr "更新失败。"
