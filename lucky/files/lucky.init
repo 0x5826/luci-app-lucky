@@ -69,6 +69,15 @@ start_service() {
   lucky_run
 }
 
+stop_service() {
+  log_output "lucky is stop."
+}
+
+restart_service() {
+  stop_service
+  start_service
+}
+
 service_triggers() {
 	procd_add_reload_trigger lucky
 }
