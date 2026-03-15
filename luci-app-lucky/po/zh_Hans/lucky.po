@@ -83,7 +83,7 @@ msgid "DefaultAuth"
 msgstr "默认登录账号密码"
 
 msgid "Reset 666 as admin account and password?"
-msgstr "确定要将账号和密码重置为 666 吗？"
+msgstr "重置帐号密码"
 
 msgid "update success"
 msgstr "更新成功"
