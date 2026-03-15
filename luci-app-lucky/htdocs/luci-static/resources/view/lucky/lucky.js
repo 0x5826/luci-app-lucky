@@ -5,6 +5,7 @@
 'require view';
 'require uci';
 'require ui';
+'require dom';
 
 var callGetStatus = rpc.declare({
 	object: 'luci-app-lucky',
@@ -32,7 +33,7 @@ var callServiceAction = rpc.declare({
 	expect: { result: false }
 });
 
-return L.view.extend({
+return view.extend({
 	load: function() {
 		return Promise.all([
 			uci.load('lucky'),
@@ -45,7 +46,7 @@ return L.view.extend({
 		if (confirm(msg)) {
 			return callServiceAction(action).then(function() {
 				ui.addNotification(null, E('p', _('Service %s successfully.').format(action)), 'info');
-				L.ui.refresh();
+				setTimeout(function() { location.reload(); }, 2000);
 			});
 		}
 	},

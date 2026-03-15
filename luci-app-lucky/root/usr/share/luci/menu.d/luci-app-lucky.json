@@ -5,6 +5,9 @@
 			"type": "view",
 			"path": "lucky/lucky"
 		},
+		"acl_depends": {
+			"luci-app-lucky": true
+		},
 		"order": 57,
 		"dependent": true
 	}

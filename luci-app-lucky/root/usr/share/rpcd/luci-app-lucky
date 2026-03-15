@@ -4,7 +4,7 @@
 
 case "$1" in
 	list)
-		echo '{ "get_status": {}, "get_info": {}, "set_config": { "key": "key", "value": "value" }, "service": { "action": "action" } }'
+		echo '{ "luci-app-lucky": { "get_status": {}, "get_info": {}, "set_config": { "key": "string", "value": "string" }, "service": { "action": "string" } } }'
 	;;
 	call)
 		case "$2" in
