@@ -12,9 +12,15 @@ var callGetStatus = rpc.declare({
     expect: { }
 });
 
-var callGetInfo = rpc.declare({
+var callGetAppInfo = rpc.declare({
     object: 'luci.lucky',
-    method: 'get_info',
+    method: 'get_app_info',
+    expect: { }
+});
+
+var callGetAdminInfo = rpc.declare({
+    object: 'luci.lucky',
+    method: 'get_admin_info',
     expect: { }
 });
 
@@ -150,10 +156,18 @@ return view.extend({
             });
         }
 
-        function fetchInfo() {
-            return callGetInfo().then(function(infoData) {
-                if (infoData) {
-                    flushLuckyInfo(infoData);
+        function fetchAppInfo() {
+            return callGetAppInfo().then(function(appData) {
+                if (appData) {
+                    flushAppInfo(appData);
+                }
+            });
+        }
+
+        function fetchAdminInfo() {
+            return callGetAdminInfo().then(function(adminData) {
+                if (adminData) {
+                    flushAdminInfo(adminData);
                 }
             });
         }
@@ -189,7 +203,8 @@ return view.extend({
 
         function loadAllData() {
             fetchStatus();
-            fetchInfo();
+            fetchAppInfo();
+            fetchAdminInfo();
             fetchConfigDir();
         }
 
@@ -270,10 +285,11 @@ return view.extend({
                         var shouldBeRunning = (action === 'start' || action === 'restart');
 
                         if (shouldBeRunning ? isRunning : !isRunning) {
-                            callGetInfo().then(function(infoData) {
+                            Promise.all([callGetAppInfo(), callGetAdminInfo()]).then(function(results) {
                                 isUpdating = false;
                                 ui.hideModal();
-                                if (infoData) flushLuckyInfo(infoData);
+                                if (results[0]) flushAppInfo(results[0]);
+                                if (results[1]) flushAdminInfo(results[1]);
                                 flushLuckyStatus(statusData.running);
                             });
                         } else {
@@ -307,10 +323,11 @@ return view.extend({
 
                             callGetStatus().then(function(statusData) {
                                 if (statusData && statusData.running) {
-                                    callGetInfo().then(function(infoData) {
+                                    Promise.all([callGetAppInfo(), callGetAdminInfo()]).then(function(results) {
                                         isUpdating = false;
                                         ui.hideModal();
-                                        if (infoData) flushLuckyInfo(infoData);
+                                        if (results[0]) flushAppInfo(results[0]);
+                                        if (results[1]) flushAdminInfo(results[1]);
                                         flushLuckyStatus(statusData.running);
                                     });
                                 } else {
@@ -332,10 +349,10 @@ return view.extend({
             return /^[-]?[\.\d]+$/.test(val);
         }
 
-        function flushLuckyInfo(infoData) {
-            if (infoData) {
-                dom.content(container.querySelector('#_luckyArch'), E('b', {style: 'color:blue'}, infoData.luckyArch || ''));
-                if (!infoData.luckyInfo || infoData.luckyInfo === "") {
+        function flushAppInfo(appData) {
+            if (appData) {
+                dom.content(container.querySelector('#_luckyArch'), E('b', {style: 'color:blue'}, appData.luckyArch || ''));
+                if (!appData.luckyInfo || appData.luckyInfo === "") {
                     luckyInstalled = false;
                     var notInst = E('b', {style: 'color:red'}, _('Not installed'));
                     dom.content(container.querySelector('#_luckyStatus'), notInst.cloneNode(true));
@@ -364,7 +381,7 @@ return view.extend({
                 dom.content(container.querySelector('#_luckyInstallStatus'), E('b', {style: 'color:green'}, _('Installed')));
 
                 var luckyInfo = {};
-                try { luckyInfo = JSON.parse(infoData.luckyInfo); } catch(e) {}
+                try { luckyInfo = JSON.parse(appData.luckyInfo); } catch(e) {}
 
                 dom.content(container.querySelector('#_luckyCompilationTime'), E('b', {style: 'color:green'}, luckyInfo.Date || ''));
                 dom.content(container.querySelector('#_luckyVersion'), [
@@ -375,8 +392,12 @@ return view.extend({
                         click: function() { window.open("https://release.66666.host/"); }
                     })
                 ]);
+            }
+        }
 
-                var baseConf = infoData.LuckyBaseConfigure || {};
+        function flushAdminInfo(adminData) {
+            if (adminData && adminData.LuckyBaseConfigure) {
+                var baseConf = adminData.LuckyBaseConfigure || {};
                 adminHttpURL = "http://" + window.location.hostname + ":" + (baseConf.AdminWebListenPort || "16601");
                 if (baseConf.SafeURL) {
                     adminHttpURL += baseConf.SafeURL;
@@ -450,6 +471,12 @@ return view.extend({
                             }
                         })
                     ]);
+                }
+
+                var luckyStatusText = container.querySelector('#_luckyStatus').textContent || "";
+                if (luckyStatusText.indexOf('Running') !== -1 || luckyStatusText.indexOf('运行中') !== -1) {
+                    var luckyAdminOpen = container.querySelector('#_luckyAdminOpen');
+                    dom.content(luckyAdminOpen, E('a', {href: adminHttpURL, target: '_blank', style: 'font-weight:bold; color:blue;'}, adminHttpURL));
                 }
             }
         }

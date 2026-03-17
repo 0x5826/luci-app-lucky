@@ -76,7 +76,7 @@ const methods = {
             return { running: running };
         }
     },
-    get_info: {
+    get_app_info: {
         call: function() {
             let e = {};
             let configPath = get_configdir();
@@ -103,6 +103,14 @@ const methods = {
                 // 只缓存主程序信息
                 set_cache({ luckyInfo: e.luckyInfo, luckyArch: e.luckyArch });
             }
+
+            return e;
+        }
+    },
+    get_admin_info: {
+        call: function() {
+            let e = {};
+            let configPath = get_configdir();
 
             // LuckyBaseConfigure 每次实时获取
             let cmd = configPath ? `/usr/bin/lucky -baseConfInfo -cd ${shellquote(configPath)}` : `/usr/bin/lucky -baseConfInfo`;
